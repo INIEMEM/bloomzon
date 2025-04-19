@@ -1,0 +1,35 @@
+
+.absolute-top-circle{
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+
+}
+.absolute-bottom-circle{
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+}
+.light-green{
+  background-color: #52DCD7;
+}
+.kk{
+  background:#fff !important;
+  border: 0.7px solid #ddd;
+  border-radius: 10px;
+  color: #232323;
+  position: relative;
+  width: 300px;
+  height: 80px;
+  font-size: 17px;
+  overflow: hidden;
+  /* z-index: 10; */
+  box-shadow: var(--box-shadow);
+  flex-shrink: 0;
+}

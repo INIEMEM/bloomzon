@@ -1,0 +1,108 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* -------- ROOT STYLINGS -------- */
+:root
+{
+  --primary-color: #F67F00;
+  --secondary-color: '#41CCC7';
+  --light-green: '#ADE5E3';
+  /* rgba(0, 0, 0, 0.09) 0px 31px 31.3px 0px */
+  --secodary-font: "Poppins", sans-serif;
+  --box-shadow: rgba(0, 0, 0, 0.09) 0px 31px 31.3px 0px ;
+ 
+}
+
+/* --------- THE CSS RESET STYLINGS --------- */
+*
+{
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+  scroll-behavior: smooth;
+  font-style: normal;
+}
+a
+{
+  text-decoration: none;
+  color: inherit;
+}
+li
+{
+  list-style-type: none;
+}
+
+/* --------- GENERAL STYLINGS --------- */
+body
+{
+  color: #232323;
+}
+
+/* --------- UTILITY CLASSES ---------- */
+.flex
+{
+  display: flex;
+}
+.flex-align
+{
+  align-items: center;
+}
+.flex-justify-center
+{
+  justify-content: center;
+}
+.flex-justify-start
+{
+  justify-content: start;
+}
+.flex-justify-end
+{
+  justify-content: end;
+}
+.flex-center
+{
+  align-items: center;
+  justify-content: center; 
+}
+.flex-justify-between
+{
+  justify-content: space-between;
+}
+.flex-column
+{
+  flex-direction: column;
+}
+.display-none
+{
+  display: none;
+  
+}
+.links
+{
+  text-decoration: none;
+  color: inherit;
+}
+.border-1-grey{
+  border: 1px solid #ddd;
+}
+.admin-table
+{
+  border-radius: 10px;
+  margin-top: 10px;
+  box-shadow: var(--box-shadow);
+  background-color: white;
+}
+.admin-table .ant-table-thead > tr > th {
+  background-color: #41CCC7 !important;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+}
+.overflow-x-auto 
+{
+  overflow-x: auto;
+}

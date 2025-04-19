@@ -1,0 +1,30 @@
+/* Add this CSS to your global styles or a specific CSS file */
+.ant-menu-item-selected {
+  /* background-color: #f67f00 !important;  */
+  background-color: rgb(212, 247, 247) !important;
+  color: rgba(65, 204, 199, 1) !important; /* Your custom text color */
+}
+
+.ant-menu-item-selected a {
+  color: rgba(65, 204, 199, 1) !important; /* Ensure the link text color matches */
+}
+
+/* Optional: For submenu titles when selected */
+.ant-menu-submenu-selected {
+  color: rgba(65, 204, 199, 1) !important; /* Custom text color for submenu title */
+}
+/* Add this CSS to your global stylesheet */
+.ant-input-search-button {
+  background-color: #f67f00; /* Your custom background color */
+  color: white !important; /* Your custom text color */
+}
+
+.ant-input-search-button:hover {
+  background-color: #d66e00; /* Optional: hover state color */
+  color: white !important; /* Optional: hover state text color */
+}
+
+.logo-image
+{
+  transition: all ease-in-out 250ms;
+}

@@ -1,0 +1,30 @@
+.bigGraph-container
+{
+  background-color: white;
+  flex: 1;
+  height: 18.75rem;
+  border-radius: 1.1rem;
+  border: 0.7px solid #ddd;
+  padding: 0.7rem;
+}
+.bigGraph-container-title
+{
+  font-size: 1rem;
+  font-weight: 400;
+}
+.bigGraph-container-content
+{
+  /* border: 1px solid; */
+  height: 80%;
+
+}
+.bigGraph-container-subTitle
+{
+  font-size: 0.8rem;
+  color: #4e4e4e;
+}
+.bars-chart
+{
+  min-height: 90%;
+  max-width: 100%;
+}

@@ -1,0 +1,231 @@
+.login-container
+{
+  width: 100vw;
+  height: 100vh;
+  background-color: #fcfcfc;
+  position: relative;
+}
+
+.login-form-container
+{
+  width: 100%;
+  /* border: 0.7px solid #ddd; */
+  /* box-shadow: var(--box-shadow); */
+  height: 100vh;
+}
+/* .bloom-text{
+  color: #41CCC7;
+} */
+.login-container-img{
+  background-image: url('./assets/iconBack4.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.blur-glass
+{
+    border-radius: 20px;
+background: rgba(255, 255, 255, 0.30);
+position: relative;
+backdrop-filter: blur(10px);
+width: 68%;
+height: 75%;  
+padding: 20px 22px;  
+}
+.blur-glass h3
+{
+    color:  #323232;
+    line-height: 26px;
+}
+.blur-glass-image-holder
+{
+    display: flex;
+    justify-content: center;
+    margin-top: 14px;
+}
+.sdfg img
+{
+    width: 100% !important;
+}
+.blur-glass-image-holder img
+{
+    width: 60%;
+    height: 400px;
+    object-fit: cover;
+    
+}
+.blur-glass-btn
+{
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+.block1
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background-color: white;
+    font-size: 20px;
+    border-radius: 50%;
+    position: absolute;
+    left: -30px;
+    bottom: 70px;
+}
+
+.block2
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background-color: white;
+    font-size: 20px;
+    border-radius: 50%;
+    position: absolute;
+    right: -30px;
+    top: 70px;
+}
+.blur-glass-btn button
+{
+    /*
+    
+    background-color: #e4d01c;
+    */
+   
+    border: none;
+    
+    height: 40px;
+    width: 250px;
+}
+.login-form-container h1
+{
+  font-size: 35px;
+}
+.sub-caption
+{
+  font-size: 14px;
+  color: #4d4d4d;
+}
+.icons1{
+  top:0px;
+  left: 0px;
+
+}
+.icons2{
+  top:0px;
+  right: 0px;
+
+}
+.icons3{
+  top:40%;
+  left: 0px;
+
+}
+.icons4{
+  top:40%;
+  right: 50px;
+
+}
+.icons5{
+  bottom:0%;
+  right: 0px;
+ 
+}
+.icons6{
+  bottom:0%;
+  left: 0px;
+
+}
+.icons7{
+  bottom:0%;
+  left: 50%;
+
+}
+.icons8{
+  top:0%;
+  left: 50%;
+ 
+}
+.icons9
+{
+  top:5%;
+  left: 10%;
+}
+.icons10
+{
+  top:0%;
+  left: 20%;
+}
+.icons11
+{
+  top:10%;
+  left: 30%;
+}
+.icons12
+{
+  top:0%;
+  left: 40%;
+}
+.icons13
+{
+  bottom:10%;
+  left:10%;
+}
+.icons14
+{
+  bottom:20%;
+  left:0%;
+}
+.icons15
+{
+  bottom:35%;
+  left:5%;
+}
+.icons16
+{
+  top:15%;
+  left:5%;
+}
+.icons17
+{
+  top:30%;
+  left:20%;
+}
+.icons18
+{
+  top:50%;
+  left:15%;
+}
+.icons19
+{
+  top:0%;
+  left:75%
+}
+.icons20
+{
+  top:0%;
+  left:65%
+}
+.big-icon{
+  width: 70px ;
+  height: 70px ;
+ 
+
+}
+.small-icon{
+  width: 70px;
+  height: 70px;
+
+
+
+
+}
+.really-small-icon{
+  width: 70px;
+  height: 70px;
+  
+
+}

@@ -1,0 +1,27 @@
+.matrix-box
+{
+  flex: 1;
+  height: 100px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  /* border: 1px solid #ddd; */
+  padding: 10px;
+  transition: scale ease-in-out 250ms, cursor ease-in-out 250ms;
+  flex-shrink: 0;
+  /* background: red; */
+}
+.matrix-box:hover
+{
+  scale: 1.01;
+  cursor: pointer;
+}
+.matrx-box-big-font
+{
+  font-size: 1.6rem;
+  color: #232323;
+}
+.matrx-box-smal-font{
+  font-size:0.8rem ;
+  color: #7c7c7c;
+  margin-top: -5px;
+}

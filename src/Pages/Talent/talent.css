@@ -1,0 +1,22 @@
+.custom-textarea
+{
+  border: 0.8px #ddd solid;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fcfcfc;
+}
+.custom-image-talent
+{
+  min-height: 250px;
+  border: 0.8px solid #ddd;
+  min-width: 100%;
+}
+.category-grid {
+  padding: 20px;
+}
+.create-category-form{
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
