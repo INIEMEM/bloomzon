@@ -88,11 +88,11 @@ const bloomzonServices = ["BloomZon Product", "Groceries & Beverages", "Foods & 
 function App() {
   
   const routes = createRoutesFromElements(
-    <Route path='/' element={<Rootlayout/>}>
-      <Route index element={<Login/>}/>
+    <Route path='login' element={<Rootlayout/>}>
+      {/* <Route index element={<Login/>}/>
       <Route path='forgot' element={<Forgotpwd/>}/>
-      <Route path='password/reset' element={<PasswordReset/>}/>
-      <Route path='dashboard' element={<DashboardLayout/>}>
+      <Route path='password/reset' element={<PasswordReset/>}/> */}
+      <Route path='/' element={<DashboardLayout/>}>
         <Route index element={<Dashboard/>}/>
         <Route path='sellers' element={<Rootlayout/>}>
           <Route path='all' element={<AllSellers/>}/>

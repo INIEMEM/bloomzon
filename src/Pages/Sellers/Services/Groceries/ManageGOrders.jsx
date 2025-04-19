@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 const { TabPane } = Tabs;
 
 const StatusMatrixCard = ({ title, count }) => {
-  return (
+  return (  
     <div className="border-[0.7px] border-[#ddd] rounded-md p-5 flex justify-center flex-col gap-2 items-center">
       <h3 className="text-[#41CCC7] text-[14px] font-semibold">{title}</h3>
       <p className="text-lg font-bold">{count}</p>
