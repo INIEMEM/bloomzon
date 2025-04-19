@@ -87,119 +87,228 @@ const bloomzonServices = ["BloomZon Product", "Groceries & Beverages", "Foods & 
 
 function App() {
   
-  const routes = createRoutesFromElements(
-    <Route path='login' element={<Rootlayout/>}>
-      {/* <Route index element={<Login/>}/>
-      <Route path='forgot' element={<Forgotpwd/>}/>
-      <Route path='password/reset' element={<PasswordReset/>}/> */}
-      <Route path='/' element={<DashboardLayout/>}>
-        <Route index element={<Dashboard/>}/>
-        <Route path='sellers' element={<Rootlayout/>}>
-          <Route path='all' element={<AllSellers/>}/>
-          <Route path='region' element={<RegionManagement/>}/>
-          <Route path='business/type' element={<BusinessTypeManagement/>}/>
-          <Route path='country' element={<CountryManagement/>}/>
-          <Route path='shipping' element={<Rootlayout/>}>
-            <Route index element={<Shipping/>}/>
-            <Route path='edit/:shipping' element={<ShippingForm/>}/>
-          </Route>
-          <Route path=':seller' element ={<SellerDetails/>}/>
-          <Route path='paymentOptions' element={<Rootlayout/>}>
-           <Route index element={<PaymentOptionsPage/>} />
-           <Route path=':paymentOptions' element={<PaymentOptionsDetails/>}/>
-          </Route>
-          <Route path='business' element={<Rootlayout/>}>
-            <Route path=':business' element={<SellerBusiness/>}/>
-          </Route>
-          <Route path='services' element={<Rootlayout/>}>
-            <Route path='elite' element={<Rootlayout/>}>
-              <Route index element={<Elite/>}/>
-              <Route path=':eliteUsers' element={<EliteDetails/>}/>
-              <Route path='videos' element={<EliteVideos/>}/>
-             </Route>
-             <Route path='groceries-beverages' element={<Rootlayout/>}>
-              <Route index element={<Groceries/>}/>
-              <Route path=':groceryId' element={<Rootlayout/>}>
-                <Route index element={<GroceryDetails/>}/>
-                <Route path='add-product' element={<AddGProduct/>}/>
-                <Route path='manage-orders' element={<ManageGOrders/>}/>
-                <Route path='manage-returns' element={<ManageGReturns/>}/>
-                <Route path='manage-inventory' element={<ManageGInventory/>}/>
-                <Route path='payments' element={<PaymentGroceryPage/>}/>
-              </Route>  
-            </Route>
-          </Route>
-        </Route>
-        <Route path='user' element={<Rootlayout/>}>
-          <Route path='all' element={<AllSellers/>}/>
-          <Route path='withdrawals' element={<WithdrawalsPage/>}/>
-        </Route>
-        <Route path='actions' element={<Rootlayout/>}>
-          <Route path='referals' element={<Referals/>}/>
-          <Route path='transaction' element={<MyTransactions/>}/>
-          <Route path='profile' element={<ProfilePage/>}/>
-          <Route path='notifications' element={<Notifications/>}/>
-          <Route path='paymentoptions' element={<MyPaymentOptions/>}/>
-        </Route>
-        <Route path='talent' element={<Rootlayout/>}>
-          <Route path='create' element={<CreateTalent/>}/>
-          <Route path='settings' element={<TalentHuntSettings/>}/>
-          <Route path='live' element={<Rootlayout/>}>
-            <Route index element={<TalentCategories/>}/>
-            <Route path=':liveTalent' element={<LiveStreams/>}/>
-          </Route>
-          <Route path='categories' element={<TalentCategoryManagement/>}/>
-          <Route path='talentlist' element={<TalentList/>}/>
-          <Route path='winner/products' element={<ProductDisplay/>}/>
-          <Route path='winner/products/create' element={<WinnerProductManagement/>}/>
-          <Route path='winner/store' element={<StoresPage/>}/>
-          <Route path='winner/latestStyles' element={<LatestStylesPage/>}/>
+  // const routes = createRoutesFromElements(
+  //   <Route path='login' element={<Rootlayout/>}>
+  //     {/* <Route index element={<Login/>}/>
+  //     <Route path='forgot' element={<Forgotpwd/>}/>
+  //     <Route path='password/reset' element={<PasswordReset/>}/> */}
+  //     <Route path='/' element={<DashboardLayout/>}>
+  //       <Route index element={<Dashboard/>}/>
+  //       <Route path='sellers' element={<Rootlayout/>}>
+  //         <Route path='all' element={<AllSellers/>}/>
+  //         <Route path='region' element={<RegionManagement/>}/>
+  //         <Route path='business/type' element={<BusinessTypeManagement/>}/>
+  //         <Route path='country' element={<CountryManagement/>}/>
+  //         <Route path='shipping' element={<Rootlayout/>}>
+  //           <Route index element={<Shipping/>}/>
+  //           <Route path='edit/:shipping' element={<ShippingForm/>}/>
+  //         </Route>
+  //         <Route path=':seller' element ={<SellerDetails/>}/>
+  //         <Route path='paymentOptions' element={<Rootlayout/>}>
+  //          <Route index element={<PaymentOptionsPage/>} />
+  //          <Route path=':paymentOptions' element={<PaymentOptionsDetails/>}/>
+  //         </Route>
+  //         <Route path='business' element={<Rootlayout/>}>
+  //           <Route path=':business' element={<SellerBusiness/>}/>
+  //         </Route>
+  //         <Route path='services' element={<Rootlayout/>}>
+  //           <Route path='elite' element={<Rootlayout/>}>
+  //             <Route index element={<Elite/>}/>
+  //             <Route path=':eliteUsers' element={<EliteDetails/>}/>
+  //             <Route path='videos' element={<EliteVideos/>}/>
+  //            </Route>
+  //            <Route path='groceries-beverages' element={<Rootlayout/>}>
+  //             <Route index element={<Groceries/>}/>
+  //             <Route path=':groceryId' element={<Rootlayout/>}>
+  //               <Route index element={<GroceryDetails/>}/>
+  //               <Route path='add-product' element={<AddGProduct/>}/>
+  //               <Route path='manage-orders' element={<ManageGOrders/>}/>
+  //               <Route path='manage-returns' element={<ManageGReturns/>}/>
+  //               <Route path='manage-inventory' element={<ManageGInventory/>}/>
+  //               <Route path='payments' element={<PaymentGroceryPage/>}/>
+  //             </Route>  
+  //           </Route>
+  //         </Route>
+  //       </Route>
+  //       <Route path='user' element={<Rootlayout/>}>
+  //         <Route path='all' element={<AllSellers/>}/>
+  //         <Route path='withdrawals' element={<WithdrawalsPage/>}/>
+  //       </Route>
+  //       <Route path='actions' element={<Rootlayout/>}>
+  //         <Route path='referals' element={<Referals/>}/>
+  //         <Route path='transaction' element={<MyTransactions/>}/>
+  //         <Route path='profile' element={<ProfilePage/>}/>
+  //         <Route path='notifications' element={<Notifications/>}/>
+  //         <Route path='paymentoptions' element={<MyPaymentOptions/>}/>
+  //       </Route>
+  //       <Route path='talent' element={<Rootlayout/>}>
+  //         <Route path='create' element={<CreateTalent/>}/>
+  //         <Route path='settings' element={<TalentHuntSettings/>}/>
+  //         <Route path='live' element={<Rootlayout/>}>
+  //           <Route index element={<TalentCategories/>}/>
+  //           <Route path=':liveTalent' element={<LiveStreams/>}/>
+  //         </Route>
+  //         <Route path='categories' element={<TalentCategoryManagement/>}/>
+  //         <Route path='talentlist' element={<TalentList/>}/>
+  //         <Route path='winner/products' element={<ProductDisplay/>}/>
+  //         <Route path='winner/products/create' element={<WinnerProductManagement/>}/>
+  //         <Route path='winner/store' element={<StoresPage/>}/>
+  //         <Route path='winner/latestStyles' element={<LatestStylesPage/>}/>
          
-          {/* <Route path='category' element={<TalentCategories/>}/> */}
-          <Route path='contestants' element={<Rootlayout/>}>
-            <Route path='categories' element={<TalentCategories/>}/>
-            <Route path=':requestTalent' element={<Rootlayout/>}>
-              <Route index element={<TalentRequest/>}/>
-              <Route path=':contestantId' element={<TalentDetails/>}/>
-            </Route>
-          </Route>
-          <Route  path='request' element={<Rootlayout/>}>
-            <Route path= 'category' element={<TalentCategories/>}/>
-            <Route path=':requestTalent' element={<Rootlayout/>}>
-                <Route index element={<TalentRequest/>}/>
-                <Route path=':requestContestantId' element={<ContestantDetails/>}/>
-            </Route>
-          </Route>
-        </Route>
-        <Route path='giftCards' element={<Rootlayout/>}>
-            <Route index element={<GiftCardFundsPage/>}/>
-            <Route path='brands' element={<BrandFiltersPage/>}/>
-            <Route path='users' element={<GiftAllUsersPage/>}/>
-            <Route path='category' element={<GiftCategoriesPage/>}/>
-        </Route>
+  //         {/* <Route path='category' element={<TalentCategories/>}/> */}
+  //         <Route path='contestants' element={<Rootlayout/>}>
+  //           <Route path='categories' element={<TalentCategories/>}/>
+  //           <Route path=':requestTalent' element={<Rootlayout/>}>
+  //             <Route index element={<TalentRequest/>}/>
+  //             <Route path=':contestantId' element={<TalentDetails/>}/>
+  //           </Route>
+  //         </Route>
+  //         <Route  path='request' element={<Rootlayout/>}>
+  //           <Route path= 'category' element={<TalentCategories/>}/>
+  //           <Route path=':requestTalent' element={<Rootlayout/>}>
+  //               <Route index element={<TalentRequest/>}/>
+  //               <Route path=':requestContestantId' element={<ContestantDetails/>}/>
+  //           </Route>
+  //         </Route>
+  //       </Route>
+  //       <Route path='giftCards' element={<Rootlayout/>}>
+  //           <Route index element={<GiftCardFundsPage/>}/>
+  //           <Route path='brands' element={<BrandFiltersPage/>}/>
+  //           <Route path='users' element={<GiftAllUsersPage/>}/>
+  //           <Route path='category' element={<GiftCategoriesPage/>}/>
+  //       </Route>
         
-        <Route path='product-categories'>
-          <Route path='categories' element={<Categories/>}/>
-          <Route path='create/categories' element={<CreateCategory/>}/>
-        </Route>
-        <Route path='others' element={<Rootlayout/>}>
-          <Route path='admins' element={<Rootlayout/>}>
-            <Route index element={<Admins/>}/>
-            <Route path=':admin' element={<AdminActivityDetails/>}/>
-            <Route path='messages' element={<Rootlayout/>}>
-                <Route index element={<ChatList/>}/>
-                <Route path=':message' element={<Chat/>}/>
-            </Route>
-            <Route path='banner' element={<AppBannerManagement/>}/>
-            <Route path='logistics' element={<LogisticsServices/>}/>
-            <Route path='roles' element={<RoleManagement/>}/>
-            <Route path='bussiness' element={<BusinessPage/>}/>
-          </Route>
+  //       <Route path='product-categories'>
+  //         <Route path='categories' element={<Categories/>}/>
+  //         <Route path='create/categories' element={<CreateCategory/>}/>
+  //       </Route>
+  //       <Route path='others' element={<Rootlayout/>}>
+  //         <Route path='admins' element={<Rootlayout/>}>
+  //           <Route index element={<Admins/>}/>
+  //           <Route path=':admin' element={<AdminActivityDetails/>}/>
+  //           <Route path='messages' element={<Rootlayout/>}>
+  //               <Route index element={<ChatList/>}/>
+  //               <Route path=':message' element={<Chat/>}/>
+  //           </Route>
+  //           <Route path='banner' element={<AppBannerManagement/>}/>
+  //           <Route path='logistics' element={<LogisticsServices/>}/>
+  //           <Route path='roles' element={<RoleManagement/>}/>
+  //           <Route path='bussiness' element={<BusinessPage/>}/>
+  //         </Route>
           
-        </Route>
+  //       </Route>
         
+  //     </Route>
+  //   </Route>
+  // )
+  const routes = createRoutesFromElements(
+    <Route path='/' element={<DashboardLayout/>}>
+    <Route index element={<Dashboard/>}/>
+    <Route path='sellers' element={<Rootlayout/>}>
+      <Route path='all' element={<AllSellers/>}/>
+      <Route path='region' element={<RegionManagement/>}/>
+      <Route path='business/type' element={<BusinessTypeManagement/>}/>
+      <Route path='country' element={<CountryManagement/>}/>
+      <Route path='shipping' element={<Rootlayout/>}>
+        <Route index element={<Shipping/>}/>
+        <Route path='edit/:shipping' element={<ShippingForm/>}/>
+      </Route>
+      <Route path=':seller' element ={<SellerDetails/>}/>
+      <Route path='paymentOptions' element={<Rootlayout/>}>
+       <Route index element={<PaymentOptionsPage/>} />
+       <Route path=':paymentOptions' element={<PaymentOptionsDetails/>}/>
+      </Route>
+      <Route path='business' element={<Rootlayout/>}>
+        <Route path=':business' element={<SellerBusiness/>}/>
+      </Route>
+      <Route path='services' element={<Rootlayout/>}>
+        <Route path='elite' element={<Rootlayout/>}>
+          <Route index element={<Elite/>}/>
+          <Route path=':eliteUsers' element={<EliteDetails/>}/>
+          <Route path='videos' element={<EliteVideos/>}/>
+         </Route>
+         <Route path='groceries-beverages' element={<Rootlayout/>}>
+          <Route index element={<Groceries/>}/>
+          <Route path=':groceryId' element={<Rootlayout/>}>
+            <Route index element={<GroceryDetails/>}/>
+            <Route path='add-product' element={<AddGProduct/>}/>
+            <Route path='manage-orders' element={<ManageGOrders/>}/>
+            <Route path='manage-returns' element={<ManageGReturns/>}/>
+            <Route path='manage-inventory' element={<ManageGInventory/>}/>
+            <Route path='payments' element={<PaymentGroceryPage/>}/>
+          </Route>  
+        </Route>
       </Route>
     </Route>
+    <Route path='user' element={<Rootlayout/>}>
+      <Route path='all' element={<AllSellers/>}/>
+      <Route path='withdrawals' element={<WithdrawalsPage/>}/>
+    </Route>
+    <Route path='actions' element={<Rootlayout/>}>
+      <Route path='referals' element={<Referals/>}/>
+      <Route path='transaction' element={<MyTransactions/>}/>
+      <Route path='profile' element={<ProfilePage/>}/>
+      <Route path='notifications' element={<Notifications/>}/>
+      <Route path='paymentoptions' element={<MyPaymentOptions/>}/>
+    </Route>
+    <Route path='talent' element={<Rootlayout/>}>
+      <Route path='create' element={<CreateTalent/>}/>
+      <Route path='settings' element={<TalentHuntSettings/>}/>
+      <Route path='live' element={<Rootlayout/>}>
+        <Route index element={<TalentCategories/>}/>
+        <Route path=':liveTalent' element={<LiveStreams/>}/>
+      </Route>
+      <Route path='categories' element={<TalentCategoryManagement/>}/>
+      <Route path='talentlist' element={<TalentList/>}/>
+      <Route path='winner/products' element={<ProductDisplay/>}/>
+      <Route path='winner/products/create' element={<WinnerProductManagement/>}/>
+      <Route path='winner/store' element={<StoresPage/>}/>
+      <Route path='winner/latestStyles' element={<LatestStylesPage/>}/>
+     
+      {/* <Route path='category' element={<TalentCategories/>}/> */}
+      <Route path='contestants' element={<Rootlayout/>}>
+        <Route path='categories' element={<TalentCategories/>}/>
+        <Route path=':requestTalent' element={<Rootlayout/>}>
+          <Route index element={<TalentRequest/>}/>
+          <Route path=':contestantId' element={<TalentDetails/>}/>
+        </Route>
+      </Route>
+      <Route  path='request' element={<Rootlayout/>}>
+        <Route path= 'category' element={<TalentCategories/>}/>
+        <Route path=':requestTalent' element={<Rootlayout/>}>
+            <Route index element={<TalentRequest/>}/>
+            <Route path=':requestContestantId' element={<ContestantDetails/>}/>
+        </Route>
+      </Route>
+    </Route>
+    <Route path='giftCards' element={<Rootlayout/>}>
+        <Route index element={<GiftCardFundsPage/>}/>
+        <Route path='brands' element={<BrandFiltersPage/>}/>
+        <Route path='users' element={<GiftAllUsersPage/>}/>
+        <Route path='category' element={<GiftCategoriesPage/>}/>
+    </Route>
+    
+    <Route path='product-categories'>
+      <Route path='categories' element={<Categories/>}/>
+      <Route path='create/categories' element={<CreateCategory/>}/>
+    </Route>
+    <Route path='others' element={<Rootlayout/>}>
+      <Route path='admins' element={<Rootlayout/>}>
+        <Route index element={<Admins/>}/>
+        <Route path=':admin' element={<AdminActivityDetails/>}/>
+        <Route path='messages' element={<Rootlayout/>}>
+            <Route index element={<ChatList/>}/>
+            <Route path=':message' element={<Chat/>}/>
+        </Route>
+        <Route path='banner' element={<AppBannerManagement/>}/>
+        <Route path='logistics' element={<LogisticsServices/>}/>
+        <Route path='roles' element={<RoleManagement/>}/>
+        <Route path='bussiness' element={<BusinessPage/>}/>
+      </Route>
+      
+    </Route>
+    
+  </Route>
   )
   const router = createBrowserRouter(routes);
   return (
