@@ -93,7 +93,7 @@ const Login = () => {
           className='login-form-container flex flex-center '
           >
           <div>
-          <h1 className='bloom-text' style={{ textAlign: 'center',  }}> Bloomzon Admin</h1>
+          <h1 className='bloom-text font-bold' style={{ textAlign: 'center',  }}> Bloomzon Admin</h1>
           <p style={{ display: 'block', textAlign: 'center', marginBottom: 20 }} className='sub-caption'>
             "Manage your WooCommerce application with ease! Please log in to continue."
           </p>

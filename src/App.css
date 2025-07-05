@@ -7,7 +7,8 @@
 /* -------- ROOT STYLINGS -------- */
 :root
 {
-  --primary-color: #F67F00;
+  /* --primary-color: #F67F00; */
+  --primary-color: #f7812c;
   --secondary-color: '#41CCC7';
   --light-green: '#ADE5E3';
   /* rgba(0, 0, 0, 0.09) 0px 31px 31.3px 0px */
