@@ -5,13 +5,26 @@
   border-radius: 30px;
   /* background-color: #ADE5E3;
    */
-   background-image: url('./assets/bb.jpeg');
+   /* background-image: url('./assets/bb.jpeg'); */
    background-size: cover;
    background-repeat: no-repeat;
    background-position: right;
   position: relative;
 }
 
+.dashboard-header-image1
+{
+  background-image: url('./assets/bb.jpeg');
+}
+
+.dashboard-header-image2
+{
+  background-image: url('./assets/bbb.png');
+}
+.dashboard-header-image3
+{
+  background-image: url('./assets/b2.png');
+}
 .dashboard-header-dimmer{
   position: absolute;
   inset: 0;
@@ -24,8 +37,10 @@
   font-size: 22px;
   font-weight: 500;
   color: #232323;
+  /* color: #f5f5f5; */
 }
 .dashboard-header-dimmer-sub-title
 {
-  color: #4e4e4e;
+   color: #4e4e4e;
+  /* color: #d4d4d4; */
 }

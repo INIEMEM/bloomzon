@@ -16,26 +16,32 @@ const MenuList = ({toggle}) => {
   }; 
  
   const keys =  ['home', 'driver', 'vendor', 'hospitality','rentals' ];
-  // const bloomzonServices = ["BloomZon Product", "Groceries & Beverages", "Foods & Restaurants", "Bloomzon Healthcare","Used item","Automobile & Parts", "Real Estate", "Bloomzon Reels", "Bloomzon TV", "Bloomzon Live", "Manufacturer", "TrueView", "Logistics Services" , "Bloomzon Elite"];
+ 
 
   const serviceMenuConfig = {
-    "BloomZon Product": [
-      { title: "All Sellers", path: "../dashboard/sellers/all/BloomZonProduct" },
-      { title: "Payment Options", path: "../dashboard/sellers/paymentOptions/BloomZonProduct" },
-      // ... other menu items for BloomZon Product
-    ],
+    // "BloomZon Product": [
+    //   { title: "All Sellers", path: "../dashboard/sellers/all/BloomZonProduct" },
+    //   { title: "Payment Options", path: "../dashboard/sellers/paymentOptions/BloomZonProduct" },
+     
+    // ],
     "Groceries & Beverages": [
       { title: "All Sellers", path: "../dashboard/sellers/services/groceries-beverages" },
-      { title: "Special Offers", path: "../dashboard/sellers/offers/GroceriesBeverages" }, // Example
-      // ... other menu items for Groceries & Beverages
+      { title: "Analytics", path: "../dashboard/sellers/services/groceries-beverages/analytics" },
+      { title: "Management", path: "../dashboard/sellers/services/groceries-beverages/management" },
+      { title: "Special Offers", path: "../dashboard/sellers/offers/GroceriesBeverages" }, 
+     
     ],
     "Bloomzon Elite": [
       { title: "All Sellers", path: "../dashboard/sellers/services/elite" },
       { title: "Payment Options", path: "../dashboard/sellers/paymentOptions/BloomzonElite" },
       { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
     ],
-    
-    // ... configurations for ALL other services
+    "Bloomzon Reels": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/reels" },
+      { title: "Analytics", path: "../dashboard/sellers/services/reels/analytics" },
+      { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
+    ],
+
   };
 
   const bloomzonServices = Object.keys(serviceMenuConfig); // Get the services from the config

@@ -1,8 +1,8 @@
 import { useState, createContext } from "react";
 export const MainContext = createContext();
 const Context = (props) => {
-  const [userRole, setUserRole] = useState([]);
-  const [baseUrl, setBaseUrl] = useState('http://66.29.143.70:85/');
+  const [user, setUser] = useState({});
+  const [baseUrl, setBaseUrl] = useState('https://express-api-bloomzon.onrender.com/api/v1/');
   const getToken = () => {
     const tokenString = sessionStorage.getItem('token');
     try {
@@ -26,6 +26,8 @@ const Context = (props) => {
       setToken:saveToken,
       token,
       baseUrl,
+      user,
+      setUser
     }
   return (
     <MainContext.Provider value={contextValue}>{props.children}</MainContext.Provider> 

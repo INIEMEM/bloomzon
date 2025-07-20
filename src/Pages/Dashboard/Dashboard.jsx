@@ -8,31 +8,96 @@ import { Chart as ChartJS } from 'chart.js/auto';
 import { sellerChartData, sellerChartOptions } from '../../Graphs/graphs'
 import { AutomobileRepairs, BloomzonHealthCare, BloomzonLive, BloomzonProductIcon, BloomzonReel, BloomzonTv, ElliteIcon, FoodRestaurant, GroceriesIcon, LogisticsIcon, ManufacturerIcon, RealEstate, TrueView, UsedItem } from '../../Icons/icon'
 import { Button } from 'antd'
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 
 const Dashboard = () => {
-   
+  const carouselItems = [
+    {
+      title: 'All Users',
+      subtitle: 'These are all the matrixes for the different users',
+      stats: [
+        { matrix: '5,600', title: 'All users' },
+        { matrix: '3,473', title: 'New users' },
+        { matrix: '3,473', title: 'Active users' },
+        { matrix: '600', title: 'Banned users' },
+        { matrix: '25', title: 'Suspended users' },
+      ],
+      class: 'dashboard-header-image1'
+    },
+
+    {
+      title: 'All Sellers',
+      subtitle: 'These are all the matrixes for the different sellers',
+      stats: [
+        { matrix: '5,600', title: 'All users' },
+        { matrix: '3,473', title: 'New users' },
+        { matrix: '3,473', title: 'Active users' },
+        { matrix: '600', title: 'Banned users' },
+        { matrix: '25', title: 'Suspended users' },
+      ],
+      class: 'dashboard-header-image2'
+    },
+    {
+      title: 'All Consumers',
+      subtitle: 'These are all the matrixes for the different users',
+      stats: [
+        { matrix: '5,600', title: 'All users' },
+        { matrix: '3,473', title: 'New users' },
+        { matrix: '3,473', title: 'Active users' },
+        { matrix: '600', title: 'Banned users' },
+        { matrix: '25', title: 'Suspended users' },
+      ],
+      class: 'dashboard-header-image3'
+    },
+    
+  ];
+
+  const settings = {
+    dots: true,
+    infinite: true,
+    autoplay: true,
+    autoplaySpeed: 5000, 
+    speed: 1000,         
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: false,
+    pauseOnHover: true,
+  };
+
   return (
     <div style={{padding: 20}}>
       <div className='flex flex-justify-between'>
         <h1 style={{fontSize: '2rem', color: '#323232'}}>DashBoard</h1>
         <Button style={{background: 'var(--primary-color)', color: 'white', border: 'none'}}>Create Admin</Button>
       </div>
-      <div className="dashboard-header-image">
-        <div className='flex' style={{justifyContent:'end'}}>
-         {/* <img src={logo} alt="" height={270}  style={{objectFit: 'cover', width: '50%'}}/> */}
-         <div className="dashboard-header-dimmer">
-            <p className='dashboard-header-dimmer-title'>All Users</p>
-            <p className='dashboard-header-dimmer-sub-title'>These are all the matrixes for the different users</p>
-            <div className='flex' style={{gap:20, position:'absolute', bottom:20, left: 20, right: 20}}>
-              <UserMatrxs matrix= '5,600' title='All users'/>
-              <UserMatrxs matrix= '3,473' title='New users'/>
-              <UserMatrxs matrix= '3,473' title='Active users'/>
-              <UserMatrxs matrix= '600' title='Banned users'/>
-              <UserMatrxs matrix= '25' title='Suspended users'/>
+      <Slider {...settings}>
+      {carouselItems.map((item, index) => (
+        <div key={index} className={`dashboard-header-image ${item.class}`}>
+          <div className="flex" style={{ justifyContent: 'end' }}>
+            <div className="dashboard-header-dimmer">
+              <p className="dashboard-header-dimmer-title ">{item.title}</p>
+              <p className="dashboard-header-dimmer-sub-title ">{item.subtitle}</p>
+              <div
+                className="flex"
+                style={{
+                  gap: 20,
+                  position: 'absolute',
+                  bottom: 20,
+                  left: 20,
+                  right: 20,
+                }}
+              >
+                {item.stats.map((stat, i) => (
+                  <UserMatrxs key={i} matrix={stat.matrix} title={stat.title} />
+                ))}
+              </div>
             </div>
-         </div>
+          </div>
         </div>
-      </div>
+      ))}
+    </Slider>
       <div className="flex flex-justify-between " style={{gap:20, marginTop:20}}>
         <UserMatrxs matrix= '5,600' title='All Sellers' icon={<LogisticsIcon/>}/>
         <UserMatrxs matrix= '5,600' title='All Users' icon={<BloomzonProductIcon/>}/>

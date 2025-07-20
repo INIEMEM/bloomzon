@@ -9,7 +9,7 @@ const {Header, Sider, Content} = Layout
 const { Search } = Input;
 const DashboardLayout = () => {
   const [toggle, setToggle] = useState(false);
-  const { currentUser, isUndreadMessages } = useContext(MainContext);
+  const { user } = useContext(MainContext);
   const {token: {colorBgContainer}} = theme.useToken()
   
   return (
@@ -33,8 +33,8 @@ const DashboardLayout = () => {
             <div className="flex flex-align" style={{gap:10}}>
               <div className='profile-image' style={{fontSize: '2rem', color: '#333'}}><i class="fa fa-user-circle" aria-hidden="true"></i></div>
               <div className='flex flex-column'>
-                <h4 style={{color: '#333'}}>Iniemem</h4>
-                <span style={{marginTop:-45, color: 'var(--primary-color)', fontSize: '0.8rem'}}>Super</span>
+                <h4 style={{color: '#333'}}>{user.firstname}</h4>
+                <span style={{marginTop:-45, color: 'var(--primary-color)', fontSize: '0.8rem'}}>{user.role}</span>
               </div>
             </div>
           </div>

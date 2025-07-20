@@ -78,8 +78,13 @@ import ManageGOrders from './Pages/Sellers/Services/Groceries/ManageGOrders';
 import ManageGReturns from './Pages/Sellers/Services/Groceries/ManageGReturn';
 import ManageGInventory from './Pages/Sellers/Services/Groceries/ManageGInventory';
 import PaymentGroceryPage from './Pages/Sellers/Services/Groceries/PaymentG';
-
-
+// import TwoFactor from './Pages/TwoFactor';
+import TwoFactor from './Pages/TwoFactor';
+import AdminReelsDashboard from './Pages/Sellers/Services/Reels/Reels';
+import ReelUserManagementPage from './Pages/Sellers/Services/Reels/ReelUsers';
+import ReelUserDetailsPage from './Pages/Sellers/Services/Reels/ReelsDetails';
+import GroceriesBloomzonRevenueDashboard from './Pages/Sellers/Services/Groceries/GroceriesAnalytics';
+import AdminGroceriesManagement from './Pages/Sellers/Services/Groceries/GroceriesAdminAddProducts';
 
 
 
@@ -90,10 +95,16 @@ function App() {
   
   const routes = createRoutesFromElements(
     <Route path='/' element={<Rootlayout/>}>
-      <Route path='login' element={<Login/>}/>
+      <Route index element={<Login/>}/>
       <Route path='forgot' element={<Forgotpwd/>}/>
       <Route path='password/reset' element={<PasswordReset/>}/>
-      <Route path='dashboard' element={<DashboardLayout/>}>
+      <Route path="/two-factor" element={<TwoFactor />} />
+      <Route path='dashboard' element={
+         <ProtectedRoute>
+           <DashboardLayout/>
+         </ProtectedRoute>
+      }
+        >
         <Route index element={
           // <ProtectedRoute>
       <Dashboard />
@@ -122,8 +133,15 @@ function App() {
               <Route path=':eliteUsers' element={<EliteDetails/>}/>
               <Route path='videos' element={<EliteVideos/>}/>
              </Route>
+             <Route path='reels' element={<Rootlayout/>}>
+                <Route index element={<ReelUserManagementPage/>}/>
+                <Route path='analytics' element={<AdminReelsDashboard/>}/>
+                <Route path=':reels' element={<ReelUserDetailsPage/>}/>
+             </Route>
              <Route path='groceries-beverages' element={<Rootlayout/>}>
               <Route index element={<Groceries/>}/>
+              <Route path='analytics' element={<GroceriesBloomzonRevenueDashboard/>}/>
+              <Route path='management' element={<AdminGroceriesManagement/>}/>
               <Route path=':groceryId' element={<Rootlayout/>}>
                 <Route index element={<GroceryDetails/>}/>
                 <Route path='add-product' element={<AddGProduct/>}/>
