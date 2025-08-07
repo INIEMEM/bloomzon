@@ -4,7 +4,8 @@ import { Layout, Button, theme, Input } from 'antd'
 import MenuList from '../Components/MenuList/MenuList'
 import { MainContext } from '../Context/Context'
 import logo from './assets/bloomzon.png'
-import { MailOutlined, PoweroffOutlined, MenuFoldOutlined, MenuUnfoldOutlined, BellOutlined, BellFilled } from '@ant-design/icons'
+import { MailOutlined, PoweroffOutlined, MenuFoldOutlined, MenuUnfoldOutlined, BellOutlined, BellFilled, MessageFilled } from '@ant-design/icons'
+import { BiMessageSquare } from 'react-icons/bi'
 const {Header, Sider, Content} = Layout
 const { Search } = Input;
 const DashboardLayout = () => {
@@ -29,6 +30,9 @@ const DashboardLayout = () => {
           </div>
             
           <div className="flex flex-align" style={{gap:10}}>
+            <span>
+              <MessageFilled style={{fontSize: 20, color: '#333'}}/>
+            </span>
             <span><BellFilled style={{fontSize: 20, color: '#333'}}/></span>
             <div className="flex flex-align" style={{gap:10}}>
               <div className='profile-image' style={{fontSize: '2rem', color: '#333'}}><i class="fa fa-user-circle" aria-hidden="true"></i></div>

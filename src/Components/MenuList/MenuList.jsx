@@ -178,14 +178,31 @@ const MenuList = ({toggle}) => {
         </Menu.SubMenu>)
       )}
       {(userRole?.includes('vendor') || userRole?.includes('super')) && (
-        (<Menu.SubMenu title="B-Products" key="vendor" icon={<ShoppingOutlined />}>
-          <Menu.Item key='Shops' >
-            <Link to='../dashboard/user/all'>users</Link>
+        (<Menu.SubMenu title="B-Products" key="P-r" icon={<ShoppingOutlined />}>
+          <Menu.Item key='b-prosa' >
+            <Link to='../dashboard/user/all'>Products</Link>
           </Menu.Item>
           {/* <Menu.Item key="vendorList">Vendor List</Menu.Item> */}
-          <Menu.Item key="orders">
-            <Link to='../dashboard/user/withdrawals'>Withdrawals</Link>
+          <Menu.Item key="sales">
+            <Link to='../dashboard/user/withdrawals'>Sales</Link>
           </Menu.Item>
+          <Menu.Item key="orders">
+            <Link to='../dashboard/user/withdrawals'>Orders</Link>
+          </Menu.Item>
+          <Menu.Item key="b-mees">
+            <Link to='../dashboard/user/withdrawals'>Messages</Link>
+          </Menu.Item>
+          <Menu.Item key="b-p-users">
+            <Link to='../dashboard/user/withdrawals'>Users</Link>
+          </Menu.Item>
+          <Menu.SubMenu key="b-p-sellrs">
+            <Menu.Item key="b-p-seller">      
+              <Link to='../dashboard/user/withdrawals'>Sellers</Link>
+            </Menu.Item>
+            <Menu.Item key="b-p-stores">
+            <Link to='../dashboard/user/withdrawals'>Stores</Link>
+          </Menu.Item>
+          </Menu.SubMenu>
           {/* <Menu.Item key="delivery">
             <Link to="vendor/delivery/prices">
               Delivery Prices
@@ -200,7 +217,7 @@ const MenuList = ({toggle}) => {
       )}
       {(userRole?.includes('vendor') || userRole?.includes('super')) && (
         (<Menu.SubMenu title="B-Elite" key="b-elite" icon={<ShoppingOutlined />}>
-          <Menu.Item key='Shops' >
+          <Menu.Item key='bpro' >
             <Link to='../dashboard/user/all'>users</Link>
           </Menu.Item>
           {/* <Menu.Item key="vendorList">Vendor List</Menu.Item> */}
