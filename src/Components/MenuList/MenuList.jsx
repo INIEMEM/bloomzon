@@ -31,42 +31,42 @@ const MenuList = ({toggle}) => {
       { title: "Special Offers", path: "../dashboard/sellers/offers/GroceriesBeverages" }, 
      
     ],
-    "B Elite": [
+    "B-Elite": [
       { title: "All Sellers", path: "../dashboard/sellers/services/elite" },
       { title: "Payment Options", path: "../dashboard/sellers/paymentOptions/BloomzonElite" },
       { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
     ],
-    "B Reels": [
+    "B-Reels": [
       { title: "All Sellers", path: "../dashboard/sellers/services/reels" },
       { title: "Analytics", path: "../dashboard/sellers/services/reels/analytics" },
       { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
     ],
-    "B Health care": [
+    "B-Health care": [
       { title: "All Sellers", path: "../dashboard/sellers/services/health-care" },
       { title: "Analytics", path: "../dashboard/sellers/services/health-care/analytics" },
       { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
     ],
-    "B Food": [
+    "B-Food": [
       { title: "All Sellers", path: "../dashboard/sellers/services/food" },
       { title: "Analytics", path: "../dashboard/sellers/services/food/analytics" },
       { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
     ],
-    "B Used Items": [
+    "B-Used Items": [
       { title: "All Sellers", path: "../dashboard/sellers/services/used-items" },
       { title: "Analytics", path: "../dashboard/sellers/services/used-items/analytics" },
      
     ],
-    "B Automibile": [
+    "B-Automibile": [
       { title: "All Sellers", path: "../dashboard/sellers/services/automobile" },
       { title: "Analytics", path: "../dashboard/sellers/services/automobile/analytics" },
      
     ],
-    "B Real Estate": [
+    "B-Real Estate": [
       { title: "All Sellers", path: "../dashboard/sellers/services/real-estate" },
       { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
      
     ],
-    "B TV": [
+    "B-TV": [
       { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
       { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
      
