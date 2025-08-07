@@ -56,7 +56,7 @@ const MenuList = ({toggle}) => {
       { title: "Analytics", path: "../dashboard/sellers/services/used-items/analytics" },
      
     ],
-    "B-Automibile": [
+    "B-Automibile & Parts": [
       { title: "All Sellers", path: "../dashboard/sellers/services/automobile" },
       { title: "Analytics", path: "../dashboard/sellers/services/automobile/analytics" },
      
@@ -67,6 +67,46 @@ const MenuList = ({toggle}) => {
      
     ],
     "B-TV": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
+      { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
+     
+    ],
+    "B-Products": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
+      { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
+     
+    ],
+    "B-Live": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
+      { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
+     
+    ],
+    "B-Bidshow": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
+      { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
+     
+    ],
+    "B-Manufactures": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
+      { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
+     
+    ],
+    "B-Wholesellers": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
+      { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
+     
+    ],
+    "B-Trueview": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
+      { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
+     
+    ],
+    "B-Logistics": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
+      { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
+     
+    ],
+    "B-Expo": [
       { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
       { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
      
@@ -97,7 +137,25 @@ const MenuList = ({toggle}) => {
            
        </Menu.SubMenu>)
       }
-
+      {(userRole?.includes('hospitality') || userRole?.includes('super')) &&
+        (<Menu.SubMenu title = "Inventory"  key="inventory" icon = {<BankOutlined/>} >
+          {/* <Menu.Item key="Hotel">
+            <Link to='../dashboard/actions/referals'>Referals</Link>
+          </Menu.Item> */}
+          {/* <Menu.Item key="House">
+          <Link to='../dashboard/actions/transaction'>Transactions</Link>
+          </Menu.Item> */}
+          <Menu.Item key="profile">
+          <Link to='../dashboard/actions/profile'> WareHouse</Link>
+          </Menu.Item>
+          {/* <Menu.Item key="notifications">
+          <Link to='../dashboard/actions/notifications'>Notifications</Link>
+          </Menu.Item> */}
+          {/* <Menu.Item key="pays">
+          <Link to='../dashboard/actions/paymentoptions'>Payment Options</Link>
+          </Menu.Item> */}
+        </Menu.SubMenu>)
+      }
       {(userRole?.includes('vendor') || userRole?.includes('super')) && (
         (<Menu.SubMenu title="Users" key="vendor" icon={<ShoppingOutlined />}>
           <Menu.Item key='Shops' >
@@ -121,21 +179,21 @@ const MenuList = ({toggle}) => {
       )}
       {(userRole?.includes('hospitality') || userRole?.includes('super')) &&
         (<Menu.SubMenu title = "My Actions"  key="hospitality" icon = {<BankOutlined/>} >
-          <Menu.Item key="Hotel">
+          {/* <Menu.Item key="Hotel">
             <Link to='../dashboard/actions/referals'>Referals</Link>
-          </Menu.Item>
-          <Menu.Item key="House">
+          </Menu.Item> */}
+          {/* <Menu.Item key="House">
           <Link to='../dashboard/actions/transaction'>Transactions</Link>
-          </Menu.Item>
+          </Menu.Item> */}
           <Menu.Item key="profile">
           <Link to='../dashboard/actions/profile'> Profile</Link>
           </Menu.Item>
           <Menu.Item key="notifications">
           <Link to='../dashboard/actions/notifications'>Notifications</Link>
           </Menu.Item>
-          <Menu.Item key="pays">
+          {/* <Menu.Item key="pays">
           <Link to='../dashboard/actions/paymentoptions'>Payment Options</Link>
-          </Menu.Item>
+          </Menu.Item> */}
         </Menu.SubMenu>)
       }
       {(userRole?.includes('hospitality') || userRole?.includes('super')) &&
@@ -161,6 +219,9 @@ const MenuList = ({toggle}) => {
            <Menu.Item key="createbanner">
            <Link to='../dashboard/others/admins/createbanner'>Create Banner</Link>
            </Menu.Item>
+           <Menu.Item key="createbanner">
+           <Link to='../dashboard/others/admins/createbanner'>Categories</Link>
+           </Menu.Item>
         </Menu.SubMenu>)
       }
       {(userRole?.includes('hospitality') || userRole?.includes('super')) &&
@@ -184,9 +245,30 @@ const MenuList = ({toggle}) => {
               <Link to='../dashboard/product-categories/create/categories'>Create Categores</Link>
               </Menu.Item>
             </Menu.SubMenu>
-            <Menu.Item key="logistics">
+            {/* <Menu.Item key="logistics">
               <Link to='../dashboard/others/admins/logistics'>Logistics Service</Link>
+              </Menu.Item> */}
+          
+          
+        </Menu.SubMenu>)
+      }
+      {(userRole?.includes('hospitality') || userRole?.includes('super')) &&
+        (<Menu.SubMenu title = "Extras"  key="extas" icon = {<BankOutlined/>} >
+            <Menu.SubMenu title="Admins" key='Talents-section' >
+              <Menu.Item key="allad">
+                <Link to='../dashboard/others/admins'>Drop shippings</Link>
               </Menu.Item>
+              <Menu.Item key="admes">
+              <Link to='../dashboard/others/admins/messages'>Request Item Quotes</Link>
+              </Menu.Item>
+              <Menu.Item key="adroles">
+              <Link to='../dashboard/others/admins/roles'>Customizable Products</Link>
+              </Menu.Item>
+            </Menu.SubMenu>
+            
+            {/* <Menu.Item key="logistics">
+              <Link to='../dashboard/others/admins/logistics'>Logistics Service</Link>
+              </Menu.Item> */}
           
           
         </Menu.SubMenu>)
@@ -272,7 +354,25 @@ const MenuList = ({toggle}) => {
             
         </Menu.SubMenu>)
       }
-     
+      {(userRole?.includes('hospitality') || userRole?.includes('super')) &&
+        (<Menu.SubMenu title = "Legal"  key="legal" icon = {<BankOutlined/>} >
+          {/* <Menu.Item key="Hotel">
+            <Link to='../dashboard/actions/referals'>Referals</Link>
+          </Menu.Item> */}
+          {/* <Menu.Item key="House">
+          <Link to='../dashboard/actions/transaction'>Transactions</Link>
+          </Menu.Item> */}
+          <Menu.Item key="profile">
+          <Link to='../dashboard/actions/profile'> Country</Link>
+          </Menu.Item>
+          <Menu.Item key="notifications">
+          <Link to='../dashboard/actions/notifications'>Notifications</Link>
+          </Menu.Item>
+          {/* <Menu.Item key="pays">
+          <Link to='../dashboard/actions/paymentoptions'>Payment Options</Link>
+          </Menu.Item> */}
+        </Menu.SubMenu>)
+      }
     </Menu>
   )
 }
