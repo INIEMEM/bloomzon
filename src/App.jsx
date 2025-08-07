@@ -85,7 +85,21 @@ import ReelUserManagementPage from './Pages/Sellers/Services/Reels/ReelUsers';
 import ReelUserDetailsPage from './Pages/Sellers/Services/Reels/ReelsDetails';
 import GroceriesBloomzonRevenueDashboard from './Pages/Sellers/Services/Groceries/GroceriesAnalytics';
 import AdminGroceriesManagement from './Pages/Sellers/Services/Groceries/GroceriesAdminAddProducts';
-
+import HealthCareUserManagement from './Pages/Sellers/Services/Healthcare/Healthcare';
+import HealthcareRevenueDashboard from './Pages/Sellers/Services/Healthcare/HealthcareRevenueDashboard';
+import Food from './Pages/Sellers/Services/Food/Food';
+import FoodUserDetails from './Pages/Sellers/Services/Food/FoodUserDetails';
+import FoodRevenueDashboard from './Pages/Sellers/Services/Food/FoodRevenue';
+import UsedItemsAdmin from './Pages/Sellers/Services/UsedItems/UsedItems';
+import UsedItemDetails from './Pages/Sellers/Services/UsedItems/UsedItemDetails';
+import UsedItemAnalytics from './Pages/Sellers/Services/UsedItems/UsedItemAnalytics';
+import AutomobileAdminDashboard from './Pages/Sellers/Services/Automobiles/Automobiles';
+import AutomobileVehicleDetails from './Pages/Sellers/Services/Automobiles/VehiclesDetails';
+import AutomobileRevenueAnalytics from './Pages/Sellers/Services/Automobiles/AutomobileRevenue';
+import AdminRealEstateDashboard from './Pages/Sellers/Services/RealEstate/RealEstate';
+import RealestateAdminDetailView from './Pages/Sellers/Services/RealEstate/RealtorDetails';
+import RealEstateAnalytics from './Pages/Sellers/Services/RealEstate/RealEstateAnalytics';
+import BloomzonTVAdminDashboard from './Pages/Sellers/Services/BloomzonTV/BloomzonTVAdminDashboard';
 
 
 {/* This would be the list of all the services on that platform */}
@@ -137,6 +151,36 @@ function App() {
                 <Route index element={<ReelUserManagementPage/>}/>
                 <Route path='analytics' element={<AdminReelsDashboard/>}/>
                 <Route path=':reels' element={<ReelUserDetailsPage/>}/>
+             </Route>
+             <Route path='health-care' element={<Rootlayout/>}>
+                <Route index element={<HealthCareUserManagement/>}/>
+                <Route path='analytics' element={<HealthcareRevenueDashboard/>}/>
+                {/* <Route path=':reels' element={<ReelUserDetailsPage/>}/> */}
+             </Route>
+             <Route path='food' element={<Rootlayout/>}>
+                <Route index element={<Food/>}/>
+                <Route path='analytics' element={<FoodRevenueDashboard/>}/>
+                <Route path=':food' element={<FoodUserDetails/>}/>
+             </Route>
+             <Route path='used-items' element={<Rootlayout/>}>
+                <Route index element={<UsedItemsAdmin/>}/>
+                <Route path='analytics' element={<UsedItemAnalytics/>}/>
+                <Route path=':used' element={<UsedItemDetails/>}/>
+             </Route>
+             <Route path='automobile' element={<Rootlayout/>}>
+                <Route index element={<AutomobileAdminDashboard/>}/>
+                <Route path='analytics' element={<AutomobileRevenueAnalytics/>}/>
+                <Route path=':automobile' element={<AutomobileVehicleDetails/>}/>
+             </Route>
+             <Route path='real-estate' element={<Rootlayout/>}>
+                <Route index element={<AdminRealEstateDashboard/>}/>
+                <Route path='analytics' element={<RealEstateAnalytics/>}/>
+                <Route path=':type/:realestate' element={<RealestateAdminDetailView/>}/>
+             </Route>
+             <Route path='tv' element={<Rootlayout/>}>
+                <Route index element={<BloomzonTVAdminDashboard/>}/>
+                <Route path='analytics' element={<RealEstateAnalytics/>}/>
+                <Route path=':type/:realestate' element={<RealestateAdminDetailView/>}/>
              </Route>
              <Route path='groceries-beverages' element={<Rootlayout/>}>
               <Route index element={<Groceries/>}/>

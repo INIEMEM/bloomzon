@@ -41,7 +41,36 @@ const MenuList = ({toggle}) => {
       { title: "Analytics", path: "../dashboard/sellers/services/reels/analytics" },
       { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
     ],
-
+    "Bloomzon Health care": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/health-care" },
+      { title: "Analytics", path: "../dashboard/sellers/services/health-care/analytics" },
+      { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
+    ],
+    "Bloomzon Food": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/food" },
+      { title: "Analytics", path: "../dashboard/sellers/services/food/analytics" },
+      { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
+    ],
+    "Bloomzon Used Items": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/used-items" },
+      { title: "Analytics", path: "../dashboard/sellers/services/used-items/analytics" },
+     
+    ],
+    "Bloomzon Automibile": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/automobile" },
+      { title: "Analytics", path: "../dashboard/sellers/services/automobile/analytics" },
+     
+    ],
+    "Bloomzon Real Estate": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/real-estate" },
+      { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
+     
+    ],
+    "Bloomzon TV": [
+      { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
+      { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
+     
+    ],
   };
 
   const bloomzonServices = Object.keys(serviceMenuConfig); // Get the services from the config

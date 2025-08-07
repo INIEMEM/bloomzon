@@ -48,14 +48,14 @@ const RegionManagement = () => {
   const viewRegionDetails = async (regionId) => {
     try {
       const regionResponse = await Axios.get(
-        `${baseUrl}api/v1/region/one?regionId=${regionId}`,
+        `${baseUrl}region/one?regionId=${regionId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
   
       if (regionResponse.data.success) {
-        const countryResponse = await Axios.get(`${baseUrl}api/v1/country`, {
+        const countryResponse = await Axios.get(`${baseUrl}country`, {
           headers: { Authorization: `Bearer ${token}` },
         });
   
@@ -155,7 +155,7 @@ const RegionManagement = () => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      const endpoint = `${baseUrl}api/v1/region/register`;
+      const endpoint = `${baseUrl}region/register`;
       const data =
          { name: values.name };
       const response = await Axios.post(endpoint, data, {
@@ -184,7 +184,7 @@ const RegionManagement = () => {
     setLoading(true);
     try {
       const response = await Axios.post(
-        `${baseUrl}api/v1/region/remove`,
+        `${baseUrl}region/remove`,
         { regionId },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -207,7 +207,7 @@ const RegionManagement = () => {
   const editRegion = async (values) => {
     setLoading(true);
     try {
-      const endpoint = `${baseUrl}api/v1/region/update`;
+      const endpoint = `${baseUrl}region/update`;
       const data = 
        { regionId: selectedRegion.id, name: values.name }
        

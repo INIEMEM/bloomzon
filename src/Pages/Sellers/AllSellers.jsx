@@ -20,7 +20,7 @@ const AllSellers = () => {
       setLoading(true);
       const response = await Axios({
         method: 'get',
-        url: `${baseUrl}api/v1/admin/seller`,
+        url: `${baseUrl}admin/seller`,
         headers: {
           Authorization: 'Bearer ' + token,
         }
@@ -69,7 +69,7 @@ const AllSellers = () => {
       try {
         const response = await Axios({
           method: 'put',
-          url: `${baseUrl}api/v1/admin/${action}?userId=${sellerId}`,
+          url: `${baseUrl}admin/${action}?userId=${sellerId}`,
           headers: {
             Authorization: 'Bearer ' + token,
           },
