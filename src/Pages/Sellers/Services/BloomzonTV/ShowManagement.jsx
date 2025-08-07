@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Table, Button, Tag, Modal, DatePicker, Select, Input } from "antd";
 import { motion } from "framer-motion";
+import TVAdminDetailView from "./TVAdminDetailView"; 
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -13,6 +14,7 @@ const mockShows = [
     date: "2025-08-12",
     host: "Glow Beauty",
     status: "Scheduled",
+    notes: "Top-selling beauty products"
   },
   {
     key: "2",
@@ -21,6 +23,7 @@ const mockShows = [
     date: "2025-08-15",
     host: "Tech Essentials",
     status: "Completed",
+    notes: "Demo of 5 best-selling gadgets"
   },
 ];
 
@@ -28,9 +31,11 @@ const ShowManagement = () => {
   const [shows, setShows] = useState(mockShows);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [formData, setFormData] = useState({});
+  const [selectedShow, setSelectedShow] = useState(null); // NEW STATE
 
   const showModal = () => setIsModalVisible(true);
   const handleCancel = () => setIsModalVisible(false);
+  const closeDetailView = () => setSelectedShow(null); // Go back from detail
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
@@ -79,10 +84,23 @@ const ShowManagement = () => {
 
   return (
     <div className="bg-white p-4 rounded shadow">
-      <div className="flex justify-end mb-4">
-        <Button type="primary" onClick={showModal}>Create New Show</Button>
-      </div>
-      <Table columns={columns} dataSource={shows} />
+      {!selectedShow ? (
+        <>
+          <div className="flex justify-end mb-4">
+            <Button type="primary" onClick={showModal}>Create New Show</Button>
+          </div>
+          <Table
+            columns={columns}
+            dataSource={shows}
+            onRow={(record) => ({
+              onClick: () => setSelectedShow(record),
+            })}
+            rowClassName="cursor-pointer"
+          />
+        </>
+      ) : (
+        <TVAdminDetailView data={selectedShow} type="Show" onClose={closeDetailView} />
+      )}
 
       <Modal
         title="Create New Show"

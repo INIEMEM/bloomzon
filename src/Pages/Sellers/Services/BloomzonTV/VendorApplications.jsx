@@ -1,7 +1,7 @@
 import { Table, Button, Tag, Modal } from "antd";
 import { motion } from "framer-motion";
 import React, { useState } from "react";
-
+import TVAdminDetailView from "./TVAdminDetailView";
 const mockVendors = [
   {
     key: "1",
@@ -22,7 +22,7 @@ const mockVendors = [
 const VendorApplications = () => {
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-
+  const [selectedRow, setSelectedRow] = useState(null);
   const showModal = (record) => {
     setSelectedVendor(record);
     setIsModalVisible(true);
@@ -70,7 +70,16 @@ const VendorApplications = () => {
 
   return (
     <div className="bg-white p-4 rounded shadow">
-      <Table columns={columns} dataSource={mockVendors} />
+      {!selectedRow ? (<Table columns={columns} dataSource={mockVendors} onRow={(record) => ({
+        onClick: () => setSelectedRow(record),
+      })} />) : (
+        <TVAdminDetailView
+          data={selectedRow}
+          type="vendor"
+          onClose={() => setSelectedRow(null)}
+        />
+      )}
+      
 
       <Modal
         title="Vendor Application Review"

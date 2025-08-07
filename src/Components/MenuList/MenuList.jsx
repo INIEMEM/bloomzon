@@ -31,42 +31,42 @@ const MenuList = ({toggle}) => {
       { title: "Special Offers", path: "../dashboard/sellers/offers/GroceriesBeverages" }, 
      
     ],
-    "Bloomzon Elite": [
+    "B Elite": [
       { title: "All Sellers", path: "../dashboard/sellers/services/elite" },
       { title: "Payment Options", path: "../dashboard/sellers/paymentOptions/BloomzonElite" },
       { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
     ],
-    "Bloomzon Reels": [
+    "B Reels": [
       { title: "All Sellers", path: "../dashboard/sellers/services/reels" },
       { title: "Analytics", path: "../dashboard/sellers/services/reels/analytics" },
       { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
     ],
-    "Bloomzon Health care": [
+    "B Health care": [
       { title: "All Sellers", path: "../dashboard/sellers/services/health-care" },
       { title: "Analytics", path: "../dashboard/sellers/services/health-care/analytics" },
       { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
     ],
-    "Bloomzon Food": [
+    "B Food": [
       { title: "All Sellers", path: "../dashboard/sellers/services/food" },
       { title: "Analytics", path: "../dashboard/sellers/services/food/analytics" },
       { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
     ],
-    "Bloomzon Used Items": [
+    "B Used Items": [
       { title: "All Sellers", path: "../dashboard/sellers/services/used-items" },
       { title: "Analytics", path: "../dashboard/sellers/services/used-items/analytics" },
      
     ],
-    "Bloomzon Automibile": [
+    "B Automibile": [
       { title: "All Sellers", path: "../dashboard/sellers/services/automobile" },
       { title: "Analytics", path: "../dashboard/sellers/services/automobile/analytics" },
      
     ],
-    "Bloomzon Real Estate": [
+    "B Real Estate": [
       { title: "All Sellers", path: "../dashboard/sellers/services/real-estate" },
       { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
      
     ],
-    "Bloomzon TV": [
+    "B TV": [
       { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
       { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
      
