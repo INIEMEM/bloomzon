@@ -3,6 +3,8 @@ export const MainContext = createContext();
 const Context = (props) => {
   const [user, setUser] = useState({});
   const [baseUrl, setBaseUrl] = useState('https://express-api-bloomzon.onrender.com/api/v1/');
+  const [baseUrl2, setBaseUrl2] = useState('https://bloomzon-seller-admin.onrender.com/api/v1/');
+  const [baseUrl23, setBaseUrl23] = useState('https://bloomzonserver.onrender.com/bloomzonlive/');
   const getToken = () => {
     const tokenString = sessionStorage.getItem('token');
     try {
@@ -27,7 +29,9 @@ const Context = (props) => {
       token,
       baseUrl,
       user,
-      setUser
+      setUser,
+      baseUrl2,
+      baseUrl23
     }
   return (
     <MainContext.Provider value={contextValue}>{props.children}</MainContext.Provider> 

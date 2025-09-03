@@ -1,23 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Card, Statistic, Input, Row, Col, Button } from 'antd';
+import { Table, Card, Statistic, Input, Row, Col, Button, message } from 'antd';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-// Dummy API
-const getAllUsers = async () => {
-  return [
-    { id: '1', name: 'Jane Doe', email: 'jane@example.com', status: 'Active', reelCount: 8 },
-    { id: '2', name: 'John Smith', email: 'john@example.com', status: 'Pending', reelCount: 2 },
-  ];
-};
-
-const getUserKPIs = async () => ({
-  totalUsers: 1024,
-  totalReels: 2894,
-  pendingUsers: 12,
-  totalLikes: 9201,
-  totalViews: 30500,
-});
+const { Search } = Input;
 
 const ReelUserManagementPage = () => {
   const [users, setUsers] = useState([]);
@@ -25,13 +12,53 @@ const ReelUserManagementPage = () => {
   const [searchText, setSearchText] = useState('');
   const navigate = useNavigate();
 
+  // ✅ Fetch KPIs from backend
+  const fetchKPIs = async () => {
+    try {
+      const res = await axios.get(
+        `https://bloomzon-seller-admin.onrender.com/api/v1/reels/admin/reels-sellers-summary-data`
+      );
+      if (res.data.success) {
+        setKpis(res.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching KPIs:', error);
+      message.error("Failed to load KPIs");
+    }
+  };
+
+  // ✅ Fetch all users from backend
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get(
+        `https://bloomzon-seller-admin.onrender.com/api/v1/reels/admin/all-reel-users?limit=50&page=1`
+      );
+      if (res.data.success) {
+        // Map data to match your table structure
+        const mappedUsers = res.data.data.map((u, i) => ({
+          id: i + 1, // or use u._id if backend provides
+          name: u.fullName,
+          email: u.email,
+          status: u.status,
+          reelCount: u.reels,
+        }));
+        setUsers(mappedUsers);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      message.error("Failed to load users");
+    }
+  };
+
+  // ✅ Run once on mount
   useEffect(() => {
-    getAllUsers().then(setUsers);
-    getUserKPIs().then(setKpis);
+    fetchKPIs();
+    fetchUsers();
   }, []);
 
+  // ✅ Filter users by search
   const filteredUsers = users.filter(
-    user =>
+    (user) =>
       user.name.toLowerCase().includes(searchText.toLowerCase()) ||
       user.email.toLowerCase().includes(searchText.toLowerCase())
   );
@@ -59,7 +86,7 @@ const ReelUserManagementPage = () => {
       key: 'reelCount',
     },
   ];
-  
+
   return (
     <motion.div
       className="p-6 space-y-8"
@@ -69,50 +96,36 @@ const ReelUserManagementPage = () => {
       {/* KPI Section */}
       <Row gutter={[16, 16]}>
         <Col span={24} md={4}>
-          <Card>
-            <Statistic title="Total Users" value={kpis.totalUsers} />
-          </Card>
+          <Card><Statistic title="Total Users" value={kpis.totalUsers} /></Card>
         </Col>
         <Col span={24} md={4}>
-          <Card>
-            <Statistic title="Total Reels" value={kpis.totalReels} />
-          </Card>
+          <Card><Statistic title="Total Reels" value={kpis.totalReels} /></Card>
         </Col>
         <Col span={24} md={4}>
-          <Card>
-            <Statistic title="Pending Users" value={kpis.pendingUsers} />
-          </Card>
+          <Card><Statistic title="Pending Users" value={kpis.pendingUsers} /></Card>
         </Col>
         <Col span={24} md={6}>
-          <Card>
-            <Statistic title="Total Likes" value={kpis.totalLikes} />
-          </Card>
+          <Card><Statistic title="Total Likes" value={kpis.totalLikes} /></Card>
         </Col>
         <Col span={24} md={6}>
-          <Card>
-            <Statistic title="Total Views" value={kpis.totalViews} />
-          </Card>
+          <Card><Statistic title="Total Views" value={kpis.totalViews} /></Card>
         </Col>
       </Row>
 
       {/* Search */}
       <div className="flex justify-between">
-      <Input.Search
-        placeholder="Search by name or email"
-        onChange={(e) => setSearchText(e.target.value)}
-        className="max-w-md"
-        enterButton
-      />
+        <Search
+          placeholder="Search by name or email"
+          onChange={(e) => setSearchText(e.target.value)}
+          className="max-w-md"
+          enterButton
+        />
 
-      <div className='flex'>
-      <Input
-        placeholder="Type commision price"
-        onChange={(e) => setSearchText(e.target.value)}
-        className="max-w-md"
-        enterButton
-      />
-      <Button>Set Commision</Button>
-      </div>
+        {/* Commission Setting (Dummy Example, needs backend endpoint) */}
+        <div className="flex">
+          <Input placeholder="Type Promotion rate price" className="max-w-md" />
+          <Button className="ml-2">Set Promotion Rate</Button>
+        </div>
       </div>
 
       {/* User Table */}
@@ -122,7 +135,7 @@ const ReelUserManagementPage = () => {
         dataSource={filteredUsers}
         onRow={(record) => ({
           onClick: () => navigate(`/dashboard/sellers/services/reels/${record.id}`),
-        })}
+        })} 
         className="cursor-pointer rounded-lg admin-table"
         pagination={{ pageSize: 8 }}
       />

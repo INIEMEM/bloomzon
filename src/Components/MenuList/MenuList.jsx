@@ -39,7 +39,7 @@ const MenuList = ({toggle}) => {
     "B-Reels": [
       { title: "All Sellers", path: "../dashboard/sellers/services/reels" },
       { title: "Analytics", path: "../dashboard/sellers/services/reels/analytics" },
-      { title: "Create BloomZon Elite", path: "../dashboard/sellers/services/elite/videos" },
+      { title: "Orders", path: "../dashboard/sellers/services/reels/orders" },
     ],
     "B-Health care": [
       { title: "All Sellers", path: "../dashboard/sellers/services/health-care" },
@@ -68,6 +68,7 @@ const MenuList = ({toggle}) => {
     ],
     "B-TV": [
       { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
+      { title: "Settings", path: "../dashboard/sellers/services/tv/settings" },
       { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
      
     ],

@@ -100,6 +100,9 @@ import AdminRealEstateDashboard from './Pages/Sellers/Services/RealEstate/RealEs
 import RealestateAdminDetailView from './Pages/Sellers/Services/RealEstate/RealtorDetails';
 import RealEstateAnalytics from './Pages/Sellers/Services/RealEstate/RealEstateAnalytics';
 import BloomzonTVAdminDashboard from './Pages/Sellers/Services/BloomzonTV/BloomzonTVAdminDashboard';
+import ReelsOrdersPage from './Pages/Sellers/Services/Reels/ReelsOrders';
+import AdminTVRequests from './Pages/Sellers/Services/Tv/BTv';
+import BloomzonTVSettings from './Pages/Sellers/Services/Tv/BTvSettings';
 
 
 {/* This would be the list of all the services on that platform */}
@@ -150,6 +153,14 @@ function App() {
              <Route path='reels' element={<Rootlayout/>}>
                 <Route index element={<ReelUserManagementPage/>}/>
                 <Route path='analytics' element={<AdminReelsDashboard/>}/>
+                <Route path='orders' element={<ReelsOrdersPage/>}/>
+                <Route path=':reels' element={<ReelUserDetailsPage/>}/>
+             </Route>
+             <Route path='tv' element={<Rootlayout/>}>
+                <Route index element={<AdminTVRequests/>}/>
+                <Route path='settings' element={<BloomzonTVSettings/>}/>
+                <Route path='analytics' element={<AdminReelsDashboard/>}/>
+                <Route path='orders' element={<ReelsOrdersPage/>}/>
                 <Route path=':reels' element={<ReelUserDetailsPage/>}/>
              </Route>
              <Route path='health-care' element={<Rootlayout/>}>

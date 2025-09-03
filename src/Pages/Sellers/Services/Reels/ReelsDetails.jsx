@@ -29,24 +29,46 @@ const getUserById = async (id) => ({
     { day: 'Thu', clicks: 44, views: 120 },
     { day: 'Fri', clicks: 38, views: 110 },
   ],
-  reels: [
-    {
-      id: 'r1',
-      title: 'Skincare Tips',
-      monetized: true,
-      views: 1200,
-      likes: 300,
-      videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+  
+reels: [
+  {
+    id: 'r1',
+    title: 'Skincare Tips',
+    monetized: true,
+    views: 1200,
+    likes: 300,
+    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    promotion: {
+      dailyBudget: 2000,
+      startDate: '2025-07-01',
+      endDate: '2025-07-15',
+      targetAudience: 'Beauty enthusiasts',
+      location: 'Lagos, Nigeria',
+      ageRange: '18-35',
+      gender: 'Female',
+      interest: 'Skincare, Cosmetics',
     },
-    {
-      id: 'r2',
-      title: 'Behind the scenes',
-      monetized: false,
-      views: 400,
-      likes: 50,
-      videoUrl: 'https://www.w3schools.com/html/movie.mp4',
-    },
-  ],
+    products: [
+      { id: 'p1', name: 'Vitamin C Serum', price: 5000, clicks: 200, views: 800 },
+      { id: 'p2', name: 'Moisturizer', price: 3500, clicks: 150, views: 600 },
+    ],
+    comments: [
+      { id: 'c1', user: 'John', text: 'This reel is great!' },
+      { id: 'c2', user: 'Alice', text: 'Not sure about this product...' },
+    ]
+  },
+  {
+    id: 'r2',
+    title: 'Behind the scenes',
+    monetized: false,
+    views: 400,
+    likes: 50,
+    videoUrl: 'https://www.w3schools.com/html/movie.mp4',
+    products: [],
+    comments: []
+  },
+],
+
 });
 
 const ReelUserDetailsPage = () => {
@@ -200,9 +222,78 @@ const ReelUserDetailsPage = () => {
           <Table
             dataSource={user.reels}
             rowKey="id"
-            expandable={{
+            expandable={{ 
               expandedRowRender: (record) => (
-                <video controls width="100%" src={record.videoUrl} />
+                <div className="space-y-4">
+                {/* Video Preview */}
+                <video controls width="100%" src={record.videoUrl} className="rounded-md" />
+          
+                {/* Products if monetized */}
+                {record.monetized && (
+                  <Card title="Products in this Reel">
+                    <Table
+                      dataSource={record.products}
+                      rowKey="id"
+                      pagination={false}
+                      columns={[
+                        { title: 'Product', dataIndex: 'name' },
+                        { title: 'Price', dataIndex: 'price', render: (val) => `₦${val}` },
+                        { title: 'Views', dataIndex: 'views' },
+                        { title: 'Clicks', dataIndex: 'clicks' },
+                        {
+                          title: 'Actions',
+                          render: (_, product) => (
+                            <Button
+                              danger
+                              onClick={() => handleDeleteProduct(record.id, product.id)}
+                            >
+                              Delete Product
+                            </Button>
+                          ),
+                        },
+                      ]}
+                    />
+                  </Card>
+                  
+                )}
+                { record.promotion && (
+                <Card title="Promotion Details">
+                  <Row gutter={16}>
+                    <Col span={12}><p><b>Daily Budget:</b> ₦{record.promotion.dailyBudget}</p></Col>
+                    <Col span={12}><p><b>Start Date:</b> {record.promotion.startDate}</p></Col>
+                    <Col span={12}><p><b>End Date:</b> {record.promotion.endDate}</p></Col>
+                    <Col span={12}><p><b>Target Audience:</b> {record.promotion.targetAudience}</p></Col>
+                    <Col span={12}><p><b>Location:</b> {record.promotion.location}</p></Col>
+                    <Col span={12}><p><b>Age Range:</b> {record.promotion.ageRange}</p></Col>
+                    <Col span={12}><p><b>Gender:</b> {record.promotion.gender}</p></Col>
+                    <Col span={12}><p><b>Interest:</b> {record.promotion.interest}</p></Col>
+                  </Row>
+                </Card>
+              )}
+                {/* Comments */}
+                <Card title="Comments">
+                  <Table
+                    dataSource={record.comments}
+                    rowKey="id"
+                    pagination={false}
+                    columns={[
+                      { title: 'User', dataIndex: 'user' },
+                      { title: 'Comment', dataIndex: 'text' },
+                      {
+                        title: 'Actions',
+                        render: (_, comment) => (
+                          <Button
+                            danger
+                            onClick={() => handleDeleteComment(record.id, comment.id)}
+                          >
+                            Delete Comment
+                          </Button>
+                        ),
+                      },
+                    ]}
+                  />
+                </Card>
+              </div>
               ),
             }}
             className='admin-table'
@@ -211,7 +302,7 @@ const ReelUserDetailsPage = () => {
               { title: 'Views', dataIndex: 'views' },
               { title: 'Likes', dataIndex: 'likes' },
               {
-                title: 'Monetized',
+                title: 'Promotions',
                 dataIndex: 'monetized',
                 render: (val) => (val ? 'Yes' : 'No'),
               },
@@ -230,7 +321,7 @@ const ReelUserDetailsPage = () => {
           />
         </TabPane>
 
-        <TabPane tab="Monetized Reels" key="2">
+        <TabPane tab="Promoted Reels" key="2">
           <Table
             dataSource={monetizedReels}
             className='admin-table'
