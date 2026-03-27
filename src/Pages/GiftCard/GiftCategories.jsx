@@ -1,183 +1,159 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Table, Button, Modal, Form, Input, Upload, message } from 'antd';
-import { motion } from 'framer-motion';
-import { UploadOutlined } from '@ant-design/icons';
-
-const test_tv_base_url = 'https://blosom-tv-server.onrender.com'; // Replace with your actual base URL
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Button, Form, Input, Modal, Table, Upload, message } from "antd";
+import { motion } from "framer-motion";
+import { UploadOutlined } from "@ant-design/icons";
+import { REGISTRY_BASE_URL } from "../../api/config";
+import { uploadTalentImage } from "../../api/uploads";
 
 const GiftCategoriesPage = () => {
   const [categories, setCategories] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [editingCategory, setEditingCategory] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm();
-  const [editingCategoryId, setEditingCategoryId] = useState(null);
   const [fileList, setFileList] = useState([]);
-  const [searchText, setSearchText] = useState('');
-  const [filteredCategories, setFilteredCategories] = useState([]);
+  const [form] = Form.useForm();
+
+  const fetchCategories = async () => {
+    const response = await axios.get(`${REGISTRY_BASE_URL}/registry-gift-categories`);
+    setCategories(response.data?.data || []);
+  };
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  useEffect(() => {
-    filterCategories();
-  }, [categories, searchText]);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await axios.get(`${test_tv_base_url}/registry-gift-categories`);
-      setCategories(response.data.data);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      message.error('Failed to fetch categories.');
-    }
-  };
-
-  const filterCategories = () => {
-    const filtered = categories.filter((category) => {
-      const search = searchText.toLowerCase();
-      return category.name.toLowerCase().includes(search);
-    });
-    setFilteredCategories(filtered);
-  };
-
-  const showModal = (category = null) => {
-    if (category) {
-      setEditingCategoryId(category.id);
-      form.setFieldsValue(category);
-      setFileList([{ uid: '1', name: 'categoryImage.png', status: 'done', url: category.image }]);
-    } else {
-      setEditingCategoryId(null);
-      form.resetFields();
-      setFileList([]);
-    }
-    setIsModalVisible(true);
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
+  const filteredCategories = categories.filter((category) =>
+    String(category.name || "").toLowerCase().includes(searchText.toLowerCase()),
+  );
 
   const handleCreateOrUpdate = async (values) => {
     try {
-      const formData = new FormData();
-      // formData.append('name', values.name);
-
-      if (fileList.length > 0 && fileList[0]) {
-        formData.append('file', fileList[0]);
+      let image = editingCategory?.image || "";
+      if (fileList[0]?.originFileObj) {
+        image = await uploadTalentImage(fileList[0].originFileObj);
       }
 
-      let imageUrl ='';
-
-      
-        const uploadResponse = await axios.post(`${test_tv_base_url}/UploadImage`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-
-        imageUrl = uploadResponse.data.url;
-      
-
-      const categoryData = {
+      const payload = {
         name: values.name,
-        image: imageUrl
+        image,
       };
 
-      if (editingCategoryId) {
-        await axios.put(`${test_tv_base_url}/registry-gift-categories/${editingCategoryId}`, categoryData);
-        message.success('Category updated successfully.');
+      if (editingCategory) {
+        await axios.put(`${REGISTRY_BASE_URL}/registry-gift-categories/${editingCategory.id}`, payload);
+        message.success("Category updated successfully.");
       } else {
-        await axios.post(`${test_tv_base_url}/create-registry`, categoryData); // Assuming this is the correct endpoint for creation
-        message.success('Category created successfully.');
+        await axios.post(`${REGISTRY_BASE_URL}/Create-registry-category/`, payload);
+        message.success("Category created successfully.");
       }
-      fetchCategories();
+
       setIsModalVisible(false);
+      setEditingCategory(null);
+      setFileList([]);
+      form.resetFields();
+      fetchCategories();
     } catch (error) {
-      console.error('Error creating/updating category:', error);
-      message.error('Failed to create/update category.');
+      message.error("Failed to save category.");
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${test_tv_base_url}/registry-gift-categories/${id}`);
-      message.success('Category deleted successfully.');
+      await axios.delete(`${REGISTRY_BASE_URL}/registry-gift-categories/${id}`);
+      message.success("Category deleted successfully.");
       fetchCategories();
     } catch (error) {
-      console.error('Error deleting category:', error);
-      message.error('Failed to delete category.');
+      message.error("Failed to delete category.");
     }
   };
 
-  const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    {
-      title: 'Image',
-      dataIndex: 'image',
-      key: 'image',
-      render: (image) => image && <img src={image} alt="Category" style={{ maxWidth: '100px' }} />,
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (text, record) => (
-        <>
-          <Button onClick={() => showModal(record)} style={{ marginRight: 8 }}>Edit</Button>
-          <Button type='primary' onClick={() => handleDelete(record.id)} danger>Delete</Button>
-        </>
-      ),
-    },
-  ];
-
-  const uploadProps = {
-    onRemove: (file) => {
-      const index = fileList.indexOf(file);
-      const newFileList = fileList.slice();
-      newFileList.splice(index, 1);
-      setFileList(newFileList);
-    },
-    beforeUpload: (file) => {
-      setFileList([file]);
-      return false;
-    },
-    fileList,
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="p-[20px]"
-    >
-      <h1 className='text-[23px] font-semibold'>Gift Category</h1>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-[20px]">
+      <h1 className="text-[23px] font-semibold">Gift Category</h1>
       <Input
         placeholder="Search categories..."
         value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
+        onChange={(event) => setSearchText(event.target.value)}
         style={{ marginBottom: 16 }}
       />
-      <Button onClick={() => showModal()} type="primary" style={{ marginBottom: 16, background: 'var(--primary-color)' }}>Create Category</Button>
-      <Table className='admin-table' dataSource={filteredCategories} columns={columns} rowKey="id" />
+      <Button
+        onClick={() => {
+          setEditingCategory(null);
+          form.resetFields();
+          setFileList([]);
+          setIsModalVisible(true);
+        }}
+        type="primary"
+        style={{ marginBottom: 16, background: "var(--primary-color)" }}
+      >
+        Create Category
+      </Button>
+
+      <Table
+        className="admin-table"
+        dataSource={filteredCategories}
+        rowKey="id"
+        columns={[
+          { title: "ID", dataIndex: "id", key: "id" },
+          { title: "Name", dataIndex: "name", key: "name" },
+          {
+            title: "Image",
+            dataIndex: "image",
+            key: "image",
+            render: (image) => (image ? <img src={image} alt="Category" style={{ maxWidth: 100 }} /> : "N/A"),
+          },
+          {
+            title: "Actions",
+            key: "actions",
+            render: (_, record) => (
+              <>
+                <Button
+                  onClick={() => {
+                    setEditingCategory(record);
+                    form.setFieldsValue(record);
+                    setFileList(
+                      record.image
+                        ? [{ uid: String(record.id), name: "image", status: "done", url: record.image }]
+                        : [],
+                    );
+                    setIsModalVisible(true);
+                  }}
+                  style={{ marginRight: 8 }}
+                >
+                  Edit
+                </Button>
+                <Button type="primary" onClick={() => handleDelete(record.id)} danger>
+                  Delete
+                </Button>
+              </>
+            ),
+          },
+        ]}
+      />
 
       <Modal
-        title={editingCategoryId ? 'Edit Category' : 'Create Category'}
-        visible={isModalVisible}
-        onCancel={handleCancel}
+        title={editingCategory ? "Edit Category" : "Create Category"}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
-        <Form form={form} onFinish={handleCreateOrUpdate}>
-          <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please input category name!' }]}>
+        <Form form={form} onFinish={handleCreateOrUpdate} layout="vertical">
+          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
           <Form.Item name="image" label="Image">
-            <Upload {...uploadProps}>
+            <Upload
+              beforeUpload={() => false}
+              fileList={fileList}
+              maxCount={1}
+              onChange={({ fileList: nextFileList }) => setFileList(nextFileList)}
+            >
               <Button icon={<UploadOutlined />}>Select File</Button>
             </Upload>
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              {editingCategoryId ? 'Update' : 'Create'}
+              {editingCategory ? "Update" : "Create"}
             </Button>
           </Form.Item>
         </Form>

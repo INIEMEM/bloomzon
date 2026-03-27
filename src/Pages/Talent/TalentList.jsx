@@ -6,6 +6,8 @@ import UserMatrxs from "../../Components/UserMatrixs/UserMatrxs";
 import "./talent.css";
 import { InboxOutlined } from "@ant-design/icons";
 import axios from "axios";
+import { TALENT_BASE_URL } from "../../api/config";
+import { uploadTalentImage, uploadTalentVideo } from "../../api/uploads";
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { Dragger } = Upload;
@@ -27,7 +29,7 @@ const TalentList = () => {
   const fetchTalent = async () => {
     try {
       const response = await Axios({
-        url: `https://blosom-tv-server.onrender.com/Sessions`,
+        url: `${TALENT_BASE_URL}/Sessions`,
         method: "post",
       });
       // console.log("Fetched Data:", response.data);
@@ -53,7 +55,7 @@ const TalentList = () => {
   // Delete session
   const deleteSession = async (id) => {
     try {
-      await Axios.delete(`https://blosom-tv-server.onrender.com/Session/${id}`);
+      await Axios.delete(`${TALENT_BASE_URL}/Session/${id}`);
       setTalents((prev) => prev.filter((item) => item.id !== id));
       message.success('Session deleted');
 
@@ -63,19 +65,6 @@ const TalentList = () => {
     }
   };
 
-  const tryFetch = async () => {
-    try {
-      const response = await Axios({
-        url: 'https://api-bloomzon-com.onrender.com/getAllCategory',
-        method: 'post',
-
-      });
-      console.log('the new response >>>', response.data)
-    } catch (error) {
-      console.error('the error message for this', error)
-    }
-  }
-  
   const handleEdit = (talent) => {
     setEditingTalent(talent);
     setIsModalOpen(true);
@@ -84,7 +73,7 @@ const TalentList = () => {
   const handleSave = async () => {
     try {
       const response = await Axios.post(
-        `https://blosom-tv-server.onrender.com/UpdateSession/${editingTalent.id}`,
+        `${TALENT_BASE_URL}/UpdateSession/${editingTalent.id}`,
         editingTalent
       );
       console.log("Saved successfully:", response.data);
@@ -116,28 +105,23 @@ const TalentList = () => {
   };
   useEffect(() => {
     fetchTalent();
-    tryFetch()
   }, []);
 
   const api = axios.create({
-    baseURL: window.location.pathname.includes("localhost")
-      ? "http://localhost:8000"
-      : "https://blosom-tv-server.onrender.com",
+    baseURL: TALENT_BASE_URL,
   });
   const uploadToCloudinary = async (file, onProgress, type) => 
     {
-    const formData = new FormData();
-    formData.append("file", file);
-    const response = await api.post(`${type == 'image' ? 'UploadImage': '/UploadVideo'}`, formData, {
-      onUploadProgress: (event) => {
-        const percent = Math.round((event.loaded * 100) / (event.total || 1));
-        onProgress(percent);
-      },
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data.url;
+    const handleProgress = (event) => {
+      const percent = Math.round((event.loaded * 100) / (event.total || 1));
+      onProgress(percent);
+    };
+
+    if (type === "image") {
+      return uploadTalentImage(file, handleProgress);
+    }
+
+    return uploadTalentVideo(file, handleProgress);
   };
   if (loading) return <div>Loading...</div>;
 

@@ -15,6 +15,9 @@ import Context from './Context/Context';
 import Login from './Pages/Login/Login';
 import Forgotpwd from './Pages/ForgotPwd/Forgotpwd';
 import Dashboard from './Pages/Dashboard/Dashboard';
+import OrdersPage from './Pages/Orders/Orders';
+import ProductsPage from './Pages/Products/Products';
+import ProductDetailsPage from './Pages/Products/ProductDetails';
 import AllSellers from './Pages/Sellers/AllSellers';
 import SellerBusiness from './Pages/Sellers/SellerBusiness';
 import Referals from './Pages/MyAction/Referals';
@@ -188,7 +191,7 @@ function App() {
                 <Route path='analytics' element={<RealEstateAnalytics/>}/>
                 <Route path=':type/:realestate' element={<RealestateAdminDetailView/>}/>
              </Route>
-             <Route path='tv' element={<Rootlayout/>}>
+             <Route path='bloomzon-tv' element={<Rootlayout/>}>
                 <Route index element={<BloomzonTVAdminDashboard/>}/>
                 <Route path='analytics' element={<RealEstateAnalytics/>}/>
                 <Route path=':type/:realestate' element={<RealestateAdminDetailView/>}/>
@@ -212,6 +215,11 @@ function App() {
           <Route path='all' element={<AllSellers/>}/>
           <Route path='withdrawals' element={<WithdrawalsPage/>}/>
         </Route>
+        <Route path='products' element={<Rootlayout/>}>
+          <Route index element={<ProductsPage/>}/>
+          <Route path=':productId' element={<ProductDetailsPage/>}/>
+        </Route>
+        <Route path='orders' element={<OrdersPage/>} />
         <Route path='actions' element={<Rootlayout/>}>
           <Route path='referals' element={<Referals/>}/>
           <Route path='transaction' element={<MyTransactions/>}/>

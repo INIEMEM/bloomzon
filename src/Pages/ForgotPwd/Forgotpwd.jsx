@@ -14,20 +14,23 @@ const Forgotpwd = () => {
   const handleForgot = async (values) => {
     setIsLoadind(true)
     try {
-      const response = await Axios({
+      await Axios({
         method: 'post',
-        url: `${baseUrl}api/v1/auth/password-forgot`,
+        url: `${baseUrl}auth/forgot-password`,
         data: {
-          data: values.email,
-         
+          email: values.email,
         }
       });
-      console.log('Login successful:', response.data);
+      message.success("Password reset OTP sent");
       setIsLoadind(false);
-      navigate('../password/reset')
+      navigate('../password/reset', {
+        state: {
+          email: values.email,
+        },
+      })
     } catch (error) {
-      console.error('Login failed:', error );
-      message.error('Login Failed')
+      console.error('Forgot password failed:', error );
+      message.error(error?.response?.data?.message || 'Forgot password failed')
       setIsLoadind(false)
       
     }
@@ -106,7 +109,7 @@ const Forgotpwd = () => {
             
             <Form.Item>
               <Button type="primary" htmlType="submit" loading={isLoading} block style={{background: '#41CCC7', marginTop:20}}>
-                forgot password
+                Forgot Password
               </Button>
             </Form.Item>
           </Form>

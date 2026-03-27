@@ -1,169 +1,216 @@
-import React, { useState, useEffect , useContext} from "react";
-import { Table, Button, Modal, Input, Typography } from "antd";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import axios from "axios";
+import {
+  Card,
+  Col,
+  Row,
+  Space,
+  Table,
+  Tag,
+  Typography,
+  message,
+} from "antd";
 import { motion } from "framer-motion";
 import { MainContext } from "../../../Context/Context";
-import axios from "axios";
+import { ADMIN_BASE_URL, getAuthHeaders } from "../../../api/config";
 
-const { Title } = Typography;
+const prettifyKey = (value = "") =>
+  value
+    .replace(/_/g, " ")
+    .replace(/:/g, " / ")
+    .replace(/\b\w/g, (match) => match.toUpperCase());
 
 const RoleManagement = () => {
+  const { token } = useContext(MainContext);
   const [admins, setAdmins] = useState([]);
-  const {baseUrl, token} = useContext(MainContext)
-  const [roles, setRoles] = useState(["super", "guest", "admin", "seller"]);
-  const [roleCounts, setRoleCounts] = useState({});
-  const [selectedRole, setSelectedRole] = useState(null);
-  const [filteredAdmins, setFilteredAdmins] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [newRole, setNewRole] = useState("");
+  const [roles, setRoles] = useState([]);
+  const [permissions, setPermissions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch admins from the API
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [adminsResponse, rolesResponse] = await Promise.all([
+        axios.get(`${ADMIN_BASE_URL}/admins`, {
+          headers: getAuthHeaders(token),
+        }),
+        axios.get(`${ADMIN_BASE_URL}/roles`, {
+          headers: getAuthHeaders(token),
+        }),
+      ]);
+
+      setAdmins(adminsResponse.data?.data?.items || []);
+      setRoles(rolesResponse.data?.data?.roles || []);
+      setPermissions(rolesResponse.data?.data?.permissions || []);
+    } catch (error) {
+      message.error(
+        error?.response?.data?.message || "Failed to fetch admin rights data.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchAdmins = async () => {
-      try {
-        const response = await axios.get(`${baseUrl}api/v1/admin`, {headers: {
-          Authorization: `Bearer ${token}`
-        }});
-        setAdmins(response.data.user);
-        console.log('this is the admin data', response.data.user)
-      } catch (error) {
-        console.error("Error fetching admins:", error);
-      }
-    };
+    if (!token) {
+      return;
+    }
 
-    fetchAdmins();
-  }, []);
+    fetchData();
+  }, [token]);
 
-  // Calculate role counts
-  useEffect(() => {
-    const counts = roles.reduce((acc, role) => {
-    
-      acc[role] = admins?.filter((admin) => admin.role.includes(role)).length;
+  const roleUsageMap = useMemo(() => {
+    return admins.reduce((acc, admin) => {
+      (admin.roles || []).forEach((role) => {
+        acc[role] = (acc[role] || 0) + 1;
+      });
       return acc;
     }, {});
-    setRoleCounts(counts);
-  }, [admins, roles]);
+  }, [admins]);
 
-  // Handle role selection
-  const handleRoleClick = (role) => {
-    setSelectedRole(role);
-    const filtered = admins?.filter((admin) => admin.role.includes(role));
-    setFilteredAdmins(filtered);
-  };
-
-  // Handle modal visibility
-  const showModal = () => setIsModalVisible(true);
-  const handleCancel = () => setIsModalVisible(false);
-
-  // Handle adding a new role
-  const handleCreateRole = () => {
-    if (newRole.trim() && !roles.includes(newRole)) {
-      setRoles([...roles, newRole.trim()]);
-    }
-    setNewRole("");
-    setIsModalVisible(false);
-  };
-
-  // Ant Design table columns for roles
-  const roleColumns = [
+  const permissionColumns = [
     {
-      title: "Role",
-      dataIndex: "role",
-      key: "role",
-    },
-    {
-      title: "Total Admins",
-      dataIndex: "count",
-      key: "count",
-    },
-    {
-      title: "Action",
-      key: "action",
+      title: "Right",
+      key: "right",
       render: (_, record) => (
-        <Button type="link" onClick={() => handleRoleClick(record.role)}>
-          View Admins
-        </Button>
+        <div>
+          <Typography.Text strong>{record.label}</Typography.Text>
+          <div style={{ color: "#6b7280" }}>{record.key}</div>
+        </div>
       ),
+    },
+    {
+      title: "Group",
+      dataIndex: "group",
+      key: "group",
+      render: (value) => <Tag color="blue">{value}</Tag>,
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
     },
   ];
 
-  // Role data for the table
-  const roleData = roles.map((role) => ({
-    key: role,
-    role,
-    count: roleCounts[role] || 0,
-  }));
-
-  // Ant Design table columns for admins
-  const adminColumns = [
+  const assignmentColumns = [
     {
-      title: "First Name",
-      dataIndex: "firstname",
-      key: "firstname",
+      title: "Admin",
+      key: "admin",
+      render: (_, record) => (
+        <div>
+          <Typography.Text strong>
+            {record.user?.name || record.email}
+          </Typography.Text>
+          <div style={{ color: "#6b7280" }}>{record.email}</div>
+        </div>
+      ),
     },
     {
-      title: "Last Name",
-      dataIndex: "lastname",
-      key: "lastname",
+      title: "Roles",
+      dataIndex: "roles",
+      key: "roles",
+      render: (items) => (
+        <Space size={[4, 4]} wrap>
+          {items.map((item) => (
+            <Tag color="geekblue" key={item}>
+              {prettifyKey(item)}
+            </Tag>
+          ))}
+        </Space>
+      ),
     },
     {
-      title: "Email",
-      dataIndex: "email",
-      key: "email",
+      title: "Rights Count",
+      dataIndex: "permissionsCount",
+      key: "permissionsCount",
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (value) =>
+        Number(value) === 1 ? <Tag color="green">Active</Tag> : <Tag color="red">Inactive</Tag>,
+    },
+    {
+      title: "Source",
+      dataIndex: "source",
+      key: "source",
+      render: (value) =>
+        value === "env" ? <Tag color="gold">ENV</Tag> : <Tag>Manual</Tag>,
     },
   ];
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      style={{padding:20}}
+      style={{ padding: 20 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
     >
-      <div className="flex flex-justify-between">
-        <h1 level={3}>Role Management</h1>
-        <Button  type="primary" onClick={showModal} style={{ marginBottom: 16, background: 'var(--primary-color)' }}>
-          Create Role
-        </Button>
-      </div>
+      <Space direction="vertical" size="large" style={{ width: "100%" }}>
+        <Card>
+          <Typography.Title level={3} style={{ marginBottom: 4 }}>
+            Admin Rights Catalog
+          </Typography.Title>
+          <Typography.Text type="secondary">
+            Role presets define recommended rights sets, while direct permissions can
+            be added on top for custom admins.
+          </Typography.Text>
+        </Card>
 
-      {/* Role Table */}
-      <Table
-        columns={roleColumns}
-        dataSource={roleData}
-        pagination={false}
-        bordered
-        className="admin-table"
-      />
+        <Row gutter={[16, 16]}>
+          {roles.map((role) => (
+            <Col xs={24} md={12} xl={8} key={role.key}>
+              <Card loading={loading} title={role.label}>
+                <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+                  <Typography.Text type="secondary">
+                    {role.description}
+                  </Typography.Text>
+                  <Typography.Text strong>
+                    Assigned Admins: {roleUsageMap[role.key] || 0}
+                  </Typography.Text>
+                  <Space size={[4, 4]} wrap>
+                    {role.permissions.map((permission) => (
+                      <Tag color="purple" key={permission}>
+                        {prettifyKey(permission)}
+                      </Tag>
+                    ))}
+                  </Space>
+                </Space>
+              </Card>
+            </Col>
+          ))}
+        </Row>
 
-      {/* Admin Table (Filtered by Role) */}
-      {selectedRole && (
-        <div style={{ marginTop: 32 }}>
-          <Title level={4}>Admins with Role: {selectedRole}</Title>
+        <Card
+          title="Permission Definitions"
+          extra={<Typography.Text>{permissions.length} rights</Typography.Text>}
+        >
           <Table
-            columns={adminColumns}
-            dataSource={filteredAdmins.map((admin) => ({
-              key: admin.id,
-              ...admin,
-            }))}
-            pagination={{ pageSize: 5 }}
-            bordered
+            columns={permissionColumns}
+            dataSource={permissions}
+            rowKey="key"
+            loading={loading}
+            pagination={{ pageSize: 8 }}
+            className="admin-table"
           />
-        </div>
-      )}
+        </Card>
 
-      {/* Modal for Creating Role */}
-      <Modal
-        title="Create New Role"
-        visible={isModalVisible}
-        onOk={handleCreateRole}
-        onCancel={handleCancel}
-      >
-        <Input
-          placeholder="Enter role name"
-          value={newRole}
-          onChange={(e) => setNewRole(e.target.value)}
-        />
-      </Modal>
+        <Card
+          title="Current Admin Assignments"
+          extra={<Typography.Text>{admins.length} admins</Typography.Text>}
+        >
+          <Table
+            columns={assignmentColumns}
+            dataSource={admins}
+            rowKey="id"
+            loading={loading}
+            pagination={{ pageSize: 8 }}
+            className="admin-table"
+          />
+        </Card>
+      </Space>
     </motion.div>
   );
 };

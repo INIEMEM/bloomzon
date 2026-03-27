@@ -1,254 +1,281 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { Button, Form, Input, Modal, Select, Switch, Table, message } from "antd";
+import { motion } from "framer-motion";
+import axios from "axios";
+import { MainContext } from "../../Context/Context";
 import {
-    Table,
-    Button,
-    Modal,
-    Form,
-    Input,
-    InputNumber,
-    message,
-} from 'antd';
-import { MainContext } from '../../Context/Context';
-import { motion } from 'framer-motion';
-import axios from 'axios';
+  COUNTRY_BASE_URL,
+  CURRENCY_BASE_URL,
+  REGION_BASE_URL,
+  getAuthHeaders,
+} from "../../api/config";
 
 const CountryManagement = () => {
-    const [countries, setCountries] = useState([]);
-    const [filteredCountries, setFilteredCountries] = useState([]);
-    const [selectedCountry, setSelectedCountry] = useState(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const { baseUrl, token } = useContext(MainContext);
-    const [form] = Form.useForm();
+  const { token } = useContext(MainContext);
+  const [countries, setCountries] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [regions, setRegions] = useState([]);
+  const [currencies, setCurrencies] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm();
 
-    const API = axios.create({
-        baseURL: baseUrl,
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization:  `Bearer ${token}`
-        },
-    });
+  const headers = useMemo(() => getAuthHeaders(token), [token]);
 
-    const getCountries = () => API.get('/api/v1/country');
-    const getCountryDetails = (countryId) =>
-        API.get(`/api/v1/country/one?countryId=${countryId}`);
-    const createCountry = (countryData) =>
-        API.post('/api/v1/country/register', countryData);
-    const updateCountry = (countryData) =>
-        API.put('/api/v1/country/update', countryData);
-    const deleteCountry = (countryId) =>
-        API.delete('/api/v1/country/remove', { countryId });
+  const fetchLookupData = async () => {
+    const [regionResponse, currencyResponse] = await Promise.all([
+      axios.get(REGION_BASE_URL, { headers }),
+      axios.get(CURRENCY_BASE_URL, { headers }),
+    ]);
 
-    useEffect(() => {
-        fetchCountries();
-    }, []);
+    setRegions(regionResponse.data?.data || []);
+    setCurrencies(currencyResponse.data?.data || []);
+  };
 
-    const fetchCountries = async () => {
-        try {
-            const response = await getCountries();
-            const data = response.data.data.map((country, index) => ({
-                ...country,
-                sNo: index + 1,
-                createdAtFormatted: new Date(country.createdAt).toLocaleDateString(),
-            }));
-            setCountries(data);
-            setFilteredCountries(data); // Initialize filtered countries
-        } catch (error) {
-            message.error('Error fetching countries');
-            if(error?.response?.statusText == "Unauthorized"){
-                navigate('../../')
-              }
-        }
-    };
+  const fetchCountries = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(COUNTRY_BASE_URL, { headers });
+      setCountries(response.data?.data || []);
+    } catch (error) {
+      message.error("Error fetching countries");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleViewDetails = async (countryId) => {
-        try {
-            const response = await getCountryDetails(countryId);
-            setSelectedCountry(response.data.data);
-            form.setFieldsValue(response.data.data); // Pre-fill modal form
-            setIsModalOpen(true);
-        } catch (error) {
-            message.error('Error fetching country details');
-        }
-    };
+  useEffect(() => {
+    fetchLookupData();
+    fetchCountries();
+  }, [headers]);
 
-    const handleFormSubmit = async () => {
-        const formData = form.getFieldsValue();
-        console.log(selectedCountry)
-        try {
-            if (selectedCountry) {
-                await updateCountry({ ...formData, countryId: selectedCountry.id, RegionId: selectedCountry.RegionId, flag:selectedCountry.flag, emblem: selectedCountry.emblem, orthographic: selectedCountry.orthographic, status: selectedCountry.status });
-                message.success('Country updated successfully');
-            } else {
-                await createCountry({...formData, RegionId: 'Please put the values here '});
-                message.success('Country added successfully');
-            }
-            fetchCountries();
-            setIsModalOpen(false);
-            form.resetFields();
-        } catch (error) {
-            message.error('Error saving country data');
-            console.error(error)
-        }
-    };
-
-    const handleDeleteCountry = async (countryId) => {
-        try {
-            await deleteCountry(countryId);
-            message.success('Country deleted successfully');
-            fetchCountries();
-        } catch (error) {
-            message.error('Error deleting country');
-        }
-    };
-
-    const handleSearch = (e) => {
-        const query = e.target.value.toLowerCase();
-        setSearchQuery(query);
-        const filtered = countries.filter(
-            (country) =>
-                country.name.toLowerCase().includes(query) ||
-                country.abbreviation.toLowerCase().includes(query) ||
-                country.capital.toLowerCase().includes(query)
-        );
-        setFilteredCountries(filtered);
-    };
-
-    const columns = [
-        {
-            title: 'S/N',
-            dataIndex: 'sNo',
-            key: 'sNo',
-        },
-        {
-            title: 'Name',
-            dataIndex: 'name',
-            key: 'name',
-        },
-        {
-            title: 'Abbreviation',
-            dataIndex: 'abbreviation',
-            key: 'abbreviation',
-        },
-        {
-            title: 'Capital',
-            dataIndex: 'capital',
-            key: 'capital',
-        },
-        {
-            title: 'Date Created',
-            dataIndex: 'createdAtFormatted',
-            key: 'createdAtFormatted',
-        },
-        {
-            title: 'Actions',
-            key: 'actions',
-            render: (_, record) => (
-                <>
-                    <Button
-                        type="link"
-                        onClick={() => handleViewDetails(record.id)}
-                    >
-                        Edit
-                    </Button>
-                    <Button
-                        type="link"
-                        danger
-                        onClick={() => handleDeleteCountry(record.id)}
-                    >
-                        Delete
-                    </Button>
-                </>
-            ),
-        },
-    ];
-
+  const filteredCountries = countries.filter((country) => {
+    const query = searchQuery.toLowerCase();
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            transition={{ duration: 0.5 }}
-            style={{padding:20}}
-        >
-            <h1>Country Management</h1>
-            <Input
-                placeholder="Search by name, abbreviation, or capital"
-                value={searchQuery}
-                onChange={handleSearch}
-                style={{ marginBottom: 20, width: '100%' }}
-            />
-            <Button
-                type="primary"
-                style={{ marginBottom: 20, background:'var(--primary-color)' }}
-                onClick={() => setIsModalOpen(true)}
-                
-            >
-                Add Country
-            </Button>
-            <Table
-                columns={columns}
-                dataSource={filteredCountries}
-                rowKey={(record) => record.id}
-                className='admin-table'
-            />
-
-            <Modal
-                title={selectedCountry ? 'Edit Country' : 'Add Country'}
-                visible={isModalOpen}
-                onOk={handleFormSubmit}
-                onCancel={() => setIsModalOpen(false)}
-                okText={selectedCountry ? 'Update' : 'Create'}
-            >
-                <Form
-                    form={form}
-                    layout="vertical"
-                    initialValues={{
-                        name: '',
-                        abbreviation: '',
-                        capital: '',
-                        phone: '',
-                        currency: '',
-                        population: 0,
-                    }}
-                >
-                    <Form.Item
-                        name="name"
-                        label="Name"
-                        rules={[{ required: true, message: 'Please enter the country name' }]}
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        name="abbreviation"
-                        label="Abbreviation"
-                        rules={[{ required: true, message: 'Please enter the abbreviation' }]}
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
-                        name="capital"
-                        label="Capital"
-                        rules={[{ required: true, message: 'Please enter the capital' }]}
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item name="phone" label="Phone Code">
-                        <Input />
-                    </Form.Item>
-                    <Form.Item name="currency" label="Currency">
-                        <Input />
-                    </Form.Item>
-                    <Form.Item name="status" label="Status">
-                        <Input />
-                    </Form.Item>
-                    <Form.Item name="population" label="Population">
-                        <Input style={{ width: '100%' }} />
-                    </Form.Item>
-                </Form>
-            </Modal>
-        </motion.div>
+      String(country.name || "").toLowerCase().includes(query) ||
+      String(country.iso2 || "").toLowerCase().includes(query) ||
+      String(country.iso3 || "").toLowerCase().includes(query)
     );
+  });
+
+  const regionMap = new Map(regions.map((item) => [item.id, item.name]));
+  const currencyMap = new Map(
+    currencies.map((item) => [item.id, `${item.name} (${item.code})`]),
+  );
+
+  const handleViewDetails = async (countryId) => {
+    try {
+      const response = await axios.get(`${COUNTRY_BASE_URL}/${countryId}`, {
+        headers,
+      });
+
+      const details = response.data?.data;
+      setSelectedCountry(details);
+      form.setFieldsValue({
+        ...details,
+        status: Number(details?.status ?? 1) === 1,
+      });
+      setIsModalOpen(true);
+    } catch (error) {
+      message.error("Error fetching country details");
+    }
+  };
+
+  const handleFormSubmit = async () => {
+    const formData = form.getFieldsValue();
+    const payload = {
+      ...formData,
+      status: formData.status ? 1 : 0,
+    };
+
+    try {
+      setLoading(true);
+      if (selectedCountry) {
+        await axios.put(`${COUNTRY_BASE_URL}/${selectedCountry.id}`, payload, {
+          headers,
+        });
+        message.success("Country updated successfully");
+      } else {
+        await axios.post(COUNTRY_BASE_URL, payload, { headers });
+        message.success("Country added successfully");
+      }
+
+      setIsModalOpen(false);
+      setSelectedCountry(null);
+      form.resetFields();
+      fetchCountries();
+    } catch (error) {
+      message.error(error?.response?.data?.message || "Error saving country data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCountry = async (countryId) => {
+    try {
+      await axios.delete(`${COUNTRY_BASE_URL}/${countryId}`, { headers });
+      message.success("Country deleted successfully");
+      fetchCountries();
+    } catch (error) {
+      message.error(error?.response?.data?.message || "Error deleting country");
+    }
+  };
+
+  const columns = [
+    {
+      title: "S/N",
+      key: "sNo",
+      render: (_, __, index) => index + 1,
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "ISO2",
+      dataIndex: "iso2",
+      key: "iso2",
+    },
+    {
+      title: "ISO3",
+      dataIndex: "iso3",
+      key: "iso3",
+    },
+    {
+      title: "Region",
+      key: "region",
+      render: (_, record) => regionMap.get(record.region_id) || record.region_id,
+    },
+    {
+      title: "Currency",
+      key: "currency",
+      render: (_, record) =>
+        currencyMap.get(record.currency_id) || record.currency_id,
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <>
+          <Button type="link" onClick={() => handleViewDetails(record.id)}>
+            Edit
+          </Button>
+          <Button type="link" danger onClick={() => handleDeleteCountry(record.id)}>
+            Delete
+          </Button>
+        </>
+      ),
+    },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 30 }}
+      transition={{ duration: 0.5 }}
+      style={{ padding: 20 }}
+    >
+      <h1>Country Management</h1>
+      <Input
+        placeholder="Search by name or ISO code"
+        value={searchQuery}
+        onChange={(event) => setSearchQuery(event.target.value)}
+        style={{ marginBottom: 20, width: "100%" }}
+      />
+      <Button
+        type="primary"
+        style={{ marginBottom: 20, background: "var(--primary-color)" }}
+        onClick={() => {
+          setSelectedCountry(null);
+          form.resetFields();
+          form.setFieldsValue({ status: true });
+          setIsModalOpen(true);
+        }}
+      >
+        Add Country
+      </Button>
+
+      <Table
+        columns={columns}
+        dataSource={filteredCountries}
+        rowKey="id"
+        className="admin-table"
+        loading={loading}
+      />
+
+      <Modal
+        title={selectedCountry ? "Edit Country" : "Add Country"}
+        open={isModalOpen}
+        onOk={handleFormSubmit}
+        onCancel={() => setIsModalOpen(false)}
+        okText={selectedCountry ? "Update" : "Create"}
+        confirmLoading={loading}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{
+            status: true,
+          }}
+        >
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true, message: "Please enter the country name" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="iso2"
+            label="ISO2"
+            rules={[{ required: true, message: "Please enter the ISO2 code" }]}
+          >
+            <Input maxLength={2} />
+          </Form.Item>
+          <Form.Item
+            name="iso3"
+            label="ISO3"
+            rules={[{ required: true, message: "Please enter the ISO3 code" }]}
+          >
+            <Input maxLength={3} />
+          </Form.Item>
+          <Form.Item
+            name="region_id"
+            label="Region"
+            rules={[{ required: true, message: "Please select a region" }]}
+          >
+            <Select
+              options={regions.map((region) => ({
+                value: region.id,
+                label: region.name,
+              }))}
+            />
+          </Form.Item>
+          <Form.Item
+            name="currency_id"
+            label="Currency"
+            rules={[{ required: true, message: "Please select a currency" }]}
+          >
+            <Select
+              options={currencies.map((currency) => ({
+                value: currency.id,
+                label: `${currency.name} (${currency.code})`,
+              }))}
+            />
+          </Form.Item>
+          <Form.Item name="flag" label="Flag URL">
+            <Input placeholder="https://..." />
+          </Form.Item>
+          <Form.Item name="status" label="Active" valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </motion.div>
+  );
 };
 
 export default CountryManagement;

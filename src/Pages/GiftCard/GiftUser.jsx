@@ -1,175 +1,134 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Table, Button, Modal, Form, Input, DatePicker, message, Upload } from 'antd';
-import { motion } from 'framer-motion';
-import { UploadOutlined } from '@ant-design/icons';
-
-const getAllUsersUrl = 'https://bloomzon-server.vercel.app/api/v1/user/get-all-users';
-const test_tv_base_url = 'https://blosom-tv-server.onrender.com'; // Replace with your actual base URL
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Button, DatePicker, Form, Input, Modal, Table, Upload, message } from "antd";
+import { motion } from "framer-motion";
+import dayjs from "dayjs";
+import { UploadOutlined } from "@ant-design/icons";
+import { ADMIN_BASE_URL, REGISTRY_BASE_URL } from "../../api/config";
+import { uploadTalentImage } from "../../api/uploads";
 
 const GiftAllUsersPage = () => {
   const [users, setUsers] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [giftListsModalVisible, setGiftListsModalVisible] = useState(false);
-  const [form] = Form.useForm();
+  const [searchText, setSearchText] = useState("");
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [giftLists, setGiftLists] = useState([]);
-  const [searchText, setSearchText] = useState('');
-  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [giftListsModalVisible, setGiftListsModalVisible] = useState(false);
   const [fileList, setFileList] = useState([]);
+  const [form] = Form.useForm();
+
+  const fetchUsers = async () => {
+    const response = await axios.get(`${ADMIN_BASE_URL}/users`, {
+      params: { compact: true, role: "all", limit: 200 },
+    });
+    setUsers(response.data?.data?.items || []);
+  };
 
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  useEffect(() => {
-    filterUsers();
-  }, [users, searchText]);
-
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get(getAllUsersUrl);
-      setUsers(response.data.data);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      message.error('Failed to fetch users.');
-    }
-  };
-
-  const filterUsers = () => {
-    const filtered = users.filter((user) => {
-      const search = searchText?.toLowerCase();
-      return (
-        user?.username?.toLowerCase().includes(search) ||
-        user?.email?.toLowerCase().includes(search) ||
-        user?.phoneNumber?.toLowerCase().includes(search) ||
-        user?.firstName?.toLowerCase().includes(search) ||
-        user?.lastName?.toLowerCase().includes(search)
-      );
-    });
-    setFilteredUsers(filtered);
-  };
-
-  const showModal = (userId) => {
-    setSelectedUserId(userId);
-    setIsModalVisible(true);
-  };
+  const filteredUsers = users.filter((user) =>
+    [user.name, user.email, user.phone]
+      .join(" ")
+      .toLowerCase()
+      .includes(searchText.toLowerCase()),
+  );
 
   const showGiftListsModal = async (userId) => {
     try {
-      const response = await axios.get(`<span class="math-inline">\{test\_tv\_base\_url\}/registry/</span>{userId}`);
-      setGiftLists(response.data.data);
-      console.log('the response data', response.data);
+      const response = await axios.get(`${REGISTRY_BASE_URL}/registry/`, {
+        params: { userId },
+      });
+      setGiftLists(response.data?.data || []);
       setGiftListsModalVisible(true);
     } catch (error) {
-      console.error('Error fetching gift lists:', error);
-      message.error('Failed to fetch gift lists.');
+      message.error("Failed to fetch gift lists.");
     }
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-    setGiftListsModalVisible(false);
-    setFileList([]);
   };
 
   const handleAddGiftList = async (values) => {
     try {
-      let imageUrl = values.backgroundImageUrl;
+      let backgroundImageUrl = values.backgroundImageUrl;
 
-      if(fileList.length > 0 && fileList[0]){
-        const formData = new FormData();
-        formData.append('file', fileList[0]);
-
-        const uploadResponse = await axios.post(`${test_tv_base_url}/UploadImage`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-
-        imageUrl = uploadResponse.data.url;
+      if (fileList[0]?.originFileObj) {
+        backgroundImageUrl = await uploadTalentImage(fileList[0].originFileObj);
       }
 
-      const giftListData = {
+      await axios.post(`${REGISTRY_BASE_URL}/create-registry`, {
         ...values,
         ownerId: selectedUserId,
-        backgroundImageUrl: imageUrl,
-      };
-
-      await axios.post(`${test_tv_base_url}/create-registry`, giftListData,  {
-        headers: { 'Content-Type': 'application/json' },
+        date: values.date ? dayjs(values.date).format("YYYY-MM-DD") : null,
+        backgroundImageUrl,
+        selectedGiftsProducts: [],
+        giftPurchasedForMe: [],
+        giftCardFunds: [],
+        thankYouMessage: [],
+        category: [],
+        tags: values.tags ? values.tags.split(",").map((tag) => tag.trim()) : [],
       });
-      message.success('Gift list added successfully.');
+
+      message.success("Gift list added successfully.");
       setIsModalVisible(false);
+      form.resetFields();
       setFileList([]);
     } catch (error) {
-      console.error('Error adding gift list:', error);
-      message.error('Failed to add gift list.');
+      message.error("Failed to add gift list.");
     }
   };
 
-  const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
-    { title: 'Username', dataIndex: 'username', key: 'username' },
-    { title: 'Email', dataIndex: 'email', key: 'email' },
-    { title: 'Phone Number', dataIndex: 'phoneNumber', key: 'phoneNumber' },
-    { title: 'First Name', dataIndex: 'firstName', key: 'firstName' },
-    { title: 'Last Name', dataIndex: 'lastName', key: 'lastName' },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (text, record) => (
-        <>
-          <Button onClick={() => showGiftListsModal(record.id)} style={{ marginRight: 8,  }}>View Details</Button>
-          <Button style={{background: 'var(--primary-color)'}} onClick={() => showModal(record.id)} type="primary">Add Gift List</Button>
-        </>
-      ),
-    },
-  ];
-
-  const giftListsColumns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'Date', dataIndex: 'date', key: 'date' },
-    { title: 'City', dataIndex: 'city', key: 'city' },
-    { title: 'State', dataIndex: 'state', key: 'state' },
-    // Add more columns as needed
-  ];
-
-  const uploadProps = {
-    onRemove: (file) => {
-      const index = fileList.indexOf(file);
-      const newFileList = fileList.slice();
-      newFileList.splice(index, 1);
-      setFileList(newFileList);
-    },
-    beforeUpload: (file) => {
-      setFileList([file]);
-      return false;
-    },
-    fileList,
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="p-[20px]"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-[20px]">
       <Input
         placeholder="Search users..."
         value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-        style={{ marginBottom: 16, background: 'var(--primary-color)' }}
+        onChange={(event) => setSearchText(event.target.value)}
+        style={{ marginBottom: 16 }}
       />
-      <Table className='admin-table' dataSource={filteredUsers} columns={columns} rowKey="id" />
+
+      <Table
+        className="admin-table"
+        dataSource={filteredUsers}
+        rowKey="id"
+        columns={[
+          { title: "ID", dataIndex: "id", key: "id" },
+          { title: "Name", dataIndex: "name", key: "name" },
+          { title: "Email", dataIndex: "email", key: "email" },
+          { title: "Phone", dataIndex: "phone", key: "phone" },
+          {
+            title: "Actions",
+            key: "actions",
+            render: (_, record) => (
+              <>
+                <Button onClick={() => showGiftListsModal(record.id)} style={{ marginRight: 8 }}>
+                  View Details
+                </Button>
+                <Button
+                  style={{ background: "var(--primary-color)" }}
+                  onClick={() => {
+                    setSelectedUserId(record.id);
+                    form.setFieldsValue({
+                      firstAndLastName: record.name,
+                    });
+                    setIsModalVisible(true);
+                  }}
+                  type="primary"
+                >
+                  Add Gift List
+                </Button>
+              </>
+            ),
+          },
+        ]}
+      />
 
       <Modal
         title="Add Gift List"
-        visible={isModalVisible}
-        onCancel={handleCancel}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
-        <Form form={form} onFinish={handleAddGiftList}>
+        <Form form={form} onFinish={handleAddGiftList} layout="vertical">
           <Form.Item name="firstAndLastName" label="First and Last Name">
             <Input />
           </Form.Item>
@@ -177,7 +136,7 @@ const GiftAllUsersPage = () => {
             <Input />
           </Form.Item>
           <Form.Item name="date" label="Date">
-            <DatePicker style={{ width: '100%' }} />
+            <DatePicker style={{ width: "100%" }} />
           </Form.Item>
           <Form.Item name="city" label="City">
             <Input />
@@ -191,17 +150,22 @@ const GiftAllUsersPage = () => {
           <Form.Item name="shareMyAddressWithSellers" label="Share My Address With Sellers">
             <Input type="number" />
           </Form.Item>
-          <Form.Item name="letAdditionalGiftNotInMyList" label="Let Additional Gift Not In My List">
+          <Form.Item name="letAdditionalGiftNotInMyList" label="Let Additional Gifts Not In My List">
             <Input type="number" />
           </Form.Item>
-          <Form.Item name="showWhatPeopleHavePurchasedForMe" label="Show What People Have Purchased For Me">
+          <Form.Item name="showWhatPeopleHavePurchasedForMe" label="Show Purchases For Me">
             <Input type="number" />
           </Form.Item>
           <Form.Item name="listVisibility" label="List Visibility">
             <Input />
           </Form.Item>
           <Form.Item name="backgroundImageUrl" label="Background Image">
-            <Upload {...uploadProps}>
+            <Upload
+              beforeUpload={() => false}
+              fileList={fileList}
+              maxCount={1}
+              onChange={({ fileList: nextFileList }) => setFileList(nextFileList)}
+            >
               <Button icon={<UploadOutlined />}>Select File</Button>
             </Upload>
           </Form.Item>
@@ -209,7 +173,7 @@ const GiftAllUsersPage = () => {
             <Input />
           </Form.Item>
           <Form.Item>
-            <Button style={{background: 'var(--primary-color)'}} type="primary" htmlType="submit">
+            <Button style={{ background: "var(--primary-color)" }} type="primary" htmlType="submit">
               Add Gift List
             </Button>
           </Form.Item>
@@ -218,13 +182,23 @@ const GiftAllUsersPage = () => {
 
       <Modal
         title="Gift Lists"
-        visible={giftListsModalVisible}
-        onCancel={handleCancel}
+        open={giftListsModalVisible}
+        onCancel={() => setGiftListsModalVisible(false)}
         footer={null}
         width={1000}
       >
-        {/* <Table dataSource={giftLists} c */}
-        <Table className='admin-table' dataSource={giftLists} columns={giftListsColumns} rowKey="id" />
+        <Table
+          className="admin-table"
+          dataSource={giftLists}
+          rowKey="id"
+          columns={[
+            { title: "ID", dataIndex: "id", key: "id" },
+            { title: "Name", dataIndex: "name", key: "name" },
+            { title: "Date", dataIndex: "date", key: "date" },
+            { title: "City", dataIndex: "city", key: "city" },
+            { title: "State", dataIndex: "state", key: "state" },
+          ]}
+        />
       </Modal>
     </motion.div>
   );

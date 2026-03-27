@@ -5,6 +5,7 @@ import {QRCodeSVG} from 'qrcode.react';
 import { motion } from 'framer-motion';
 import Axios from 'axios';
 import { MainContext } from '../Context/Context';
+import UnsupportedFeature from '../Components/UnsupportedFeature/UnsupportedFeature';
 
 const { Title, Text } = Typography;
 
@@ -19,30 +20,7 @@ const TwoFactor = () => {
   const [loading, setLoading] = useState(false);
 
   const handleVerify = async () => {
-    if (!code || code.length !== 6) {
-      return message.error('Please enter a valid 6-digit code');
-    }
-
-    setLoading(true);
-    try {
-      const response = await Axios.post(`${baseUrl}auth/validate-token`, {
-       
-        token: code
-      });
-
-      if (response.data?.token) {
-        message.success('2FA Verified!');
-        // Store token and redirect
-        localStorage.setItem('token', response.data.token);
-        navigate('/dashboard');
-      } else {
-        message.error('Invalid code');
-      }
-    } catch (error) {
-      message.error(error?.response?.data?.error || 'Verification failed');
-    } finally {
-      setLoading(false);
-    }
+    message.warning("Two-factor verification is not available on the current backend.");
   };
 
   return (
@@ -56,6 +34,11 @@ const TwoFactor = () => {
       <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
         <Title level={3} className="text-center">Two-Factor Authentication</Title>
         <Text>Please complete 2FA using Google Authenticator</Text>
+        <UnsupportedFeature
+          title="2FA is not wired on this backend"
+          description="The admin dashboard no longer calls the obsolete token-validation endpoint."
+          note="Login now relies on the server session token returned by /api/auth/login. This screen is kept only so old routes do not hard-fail."
+        />
 
         <Radio.Group
           className="my-4 flex flex-col gap-2"

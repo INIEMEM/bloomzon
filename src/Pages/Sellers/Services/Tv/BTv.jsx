@@ -27,6 +27,7 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import dayjs from "dayjs";
 import { MainContext } from "../../../../Context/Context";
+import { BLOOMZONLIVE_BASE_URL } from "../../../../api/config";
 const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
 
@@ -34,7 +35,7 @@ const { RangePicker } = DatePicker;
  * Axios instance
  */
 const api = axios.create({
-  baseURL: "https://bloomzonserver.onrender.com/bloomzonlive",
+  baseURL: BLOOMZONLIVE_BASE_URL,
 });
 
 /**
@@ -297,7 +298,7 @@ const CommentsDrawer = ({ open, onClose, airId }) => {
 
   const toggleVisibility = async (commentId, checked) => {
     try {
-      await api.patch(`/admin/airing-session/${airId}/comments/${commentId}/visibility`, {
+      await api.put(`/admin/airing-session/${airId}/comments/${commentId}/visibility`, {
         visible: checked,
       });
       message.success("Visibility updated");
@@ -424,7 +425,7 @@ const BloomzonTVCrud = () => {
 
   const removeVideo = async (id) => {
     try {
-      await api.delete(`/admin/bloomzon-airing-videos/${id}`);
+      await api.delete(`/admin/bloomzon-airing-video/${id}`);
       message.success("Video deleted");
       load();
     } catch (e) {
@@ -598,10 +599,10 @@ export default function BloomzonTVDashboard() {
     setLoading(true);
     try {
       const [pending, current, future, past] = await Promise.all([
-        safeFetch("https://bloomzonserver.onrender.com/bloomzonlive/admin/airing-session"),
-        safeFetch("https://bloomzonserver.onrender.com/bloomzonlive/admin/current-airing-session"),
-        safeFetch("https://bloomzonserver.onrender.com/bloomzonlive/admin/future-airing-session"),
-        safeFetch("https://bloomzonserver.onrender.com/bloomzonlive/admin/passed-airing-session"),
+        safeFetch(`${BLOOMZONLIVE_BASE_URL}/admin/airing-session`),
+        safeFetch(`${BLOOMZONLIVE_BASE_URL}/admin/current-airing-session`),
+        safeFetch(`${BLOOMZONLIVE_BASE_URL}/admin/future-airing-session`),
+        safeFetch(`${BLOOMZONLIVE_BASE_URL}/admin/passed-airing-session`),
       ]);
   
 

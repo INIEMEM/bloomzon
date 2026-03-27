@@ -1,40 +1,33 @@
-import React, { useState, useEffect, useContext } from "react";
-import { Table, Button, Modal, Form, Input, notification, Space } from "antd";
-import Axios from "axios";
+import React, { useContext, useEffect, useState } from "react";
+import { Button, Form, Input, Modal, Space, Table, notification } from "antd";
 import { motion } from "framer-motion";
+import Axios from "axios";
 import { MainContext } from "../../Context/Context";
-import { useNavigate } from "react-router-dom";
-import './seller.css'
+import { COUNTRY_BASE_URL, REGION_BASE_URL, getAuthHeaders } from "../../api/config";
+import "./seller.css";
+
 const RegionManagement = () => {
+  const { token } = useContext(MainContext);
   const [regions, setRegions] = useState([]);
   const [filteredRegions, setFilteredRegions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [form] = Form.useForm();
-  const { baseUrl, token } = useContext(MainContext);
-  const navigate = useNavigate()
-  // Fetch all regions
+
   const fetchRegions = async () => {
     setLoading(true);
     try {
-      const response = await Axios.get(`${baseUrl}api/v1/region`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await Axios.get(REGION_BASE_URL, {
+        headers: getAuthHeaders(token),
       });
-      if (response.data.success) {
-        setRegions(response.data.data);
-        setFilteredRegions(response.data.data);
-      } else {
-        notification.error({ message: "Failed to fetch regions" });
-      }
+
+      const items = response.data?.data || [];
+      setRegions(items);
+      setFilteredRegions(items);
     } catch (error) {
-      console.error(error);
       notification.error({ message: "Error fetching regions" });
-      if(error?.response?.statusText == "Unauthorized"){
-        navigate('../../')
-      }
     } finally {
       setLoading(false);
     }
@@ -42,204 +35,107 @@ const RegionManagement = () => {
 
   useEffect(() => {
     fetchRegions();
-  }, []);
+  }, [token]);
 
-  // View region details
   const viewRegionDetails = async (regionId) => {
     try {
-      const regionResponse = await Axios.get(
-        `${baseUrl}region/one?regionId=${regionId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-  
-      if (regionResponse.data.success) {
-        const countryResponse = await Axios.get(`${baseUrl}country`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-  
-        if (countryResponse.data.success) {
-          const countries = countryResponse.data.data.filter(
-            (country) => country.RegionId === regionId
-          );
-          
-          // <Modal
-          //   title= "Region Details"
-          //   open={isModalOpen}
-          //   onCancel={() => setIsModalOpen(false)}
-          //   footer={null}
-          //   >
-              
-          // </Modal>
+      const [regionResponse, countryResponse] = await Promise.all([
+        Axios.get(`${REGION_BASE_URL}/${regionId}`, {
+          headers: getAuthHeaders(token),
+        }),
+        Axios.get(`${COUNTRY_BASE_URL}/region/${regionId}`, {
+          headers: getAuthHeaders(token),
+        }),
+      ]);
 
-          Modal.info({
-            title: "Region Details",
-            className: "custom-modal",
-            content: (
-              <div style={{ width: "700px" }}>
-                <p>
-                  <b>ID:</b> {regionResponse.data.data.id}
-                </p>
-                <p>
-                  <b>Name:</b> {regionResponse.data.data.name}
-                </p>
-                <p>
-                  <b>Created At:</b>{" "}
-                  {new Date(regionResponse.data.data.createdAt).toLocaleString()}
-                </p>
-                <p>
-                  <b>Updated At:</b>{" "}
-                  {new Date(regionResponse.data.data.updatedAt).toLocaleString()}
-                </p>
-                <h3>Countries:</h3>
-                <Table
-                  dataSource={countries.map((country) => ({
-                    key: country.id,
-                    name: country.name,
-                    capital: country.capital,
-                    population: country.population,
-                    currency: country.currency,
-                    statesCount: country.States.length,
-                  }))}
-                  className="admin-table"
-                  style={{boxShadow:'none'}}
-                  columns={[
-                    {
-                      title: "Name",
-                      dataIndex: "name",
-                      key: "name",
-                    },
-                    {
-                      title: "Capital",
-                      dataIndex: "capital",
-                      key: "capital",
-                    },
-                    {
-                      title: "Population",
-                      dataIndex: "population",
-                      key: "population",
-                    },
-                    {
-                      title: "Currency",
-                      dataIndex: "currency",
-                      key: "currency",
-                    },
-                    {
-                      title: "Number of States",
-                      dataIndex: "statesCount",
-                      key: "statesCount",
-                    },
-                  ]}
-                  pagination={true}
-                />
-              </div>
-            ),
-            onOk() {},
-            
-          });
-        } else {
-          notification.error({ message: "Failed to fetch countries" });
-        }
-      } else {
-        notification.error({ message: "Failed to fetch region details" });
-      }
+      const region = regionResponse.data?.data;
+      const countries = countryResponse.data?.data?.countries || [];
+
+      Modal.info({
+        title: "Region Details",
+        width: 920,
+        content: (
+          <div style={{ marginTop: 16 }}>
+            <p>
+              <b>ID:</b> {region?.id}
+            </p>
+            <p>
+              <b>Name:</b> {region?.name}
+            </p>
+            <Table
+              dataSource={countries}
+              rowKey="id"
+              pagination={false}
+              className="admin-table"
+              columns={[
+                { title: "Country", dataIndex: "name", key: "name" },
+                { title: "ISO2", dataIndex: "iso2", key: "iso2" },
+                { title: "ISO3", dataIndex: "iso3", key: "iso3" },
+                { title: "Status", dataIndex: "status", key: "status" },
+              ]}
+            />
+          </div>
+        ),
+      });
     } catch (error) {
-      console.error(error);
       notification.error({ message: "Error fetching region details" });
     }
   };
-  
 
-  // Create or edit region
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      const endpoint = `${baseUrl}region/register`;
-      const data =
-         { name: values.name };
-      const response = await Axios.post(endpoint, data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.data.success) {
-        notification.success({ message: `Region ${isEditing ? "updated" : "created"} successfully` });
-        fetchRegions();
-        form.resetFields();
-        setIsModalOpen(false);
-        setIsEditing(false);
-        setSelectedRegion(null);
+      if (selectedRegion) {
+        await Axios.put(`${REGION_BASE_URL}/${selectedRegion.id}`, values, {
+          headers: getAuthHeaders(token),
+        });
       } else {
-        notification.error({ message: `Failed to ${isEditing ? "update" : "create"} region` });
+        await Axios.post(REGION_BASE_URL, values, {
+          headers: getAuthHeaders(token),
+        });
       }
+
+      notification.success({
+        message: `Region ${selectedRegion ? "updated" : "created"} successfully`,
+      });
+      form.resetFields();
+      setIsModalOpen(false);
+      setSelectedRegion(null);
+      fetchRegions();
     } catch (error) {
-      console.error(error);
-      notification.error({ message: `Error ${isEditing ? "updating" : "creating"} region` });
+      notification.error({
+        message: error?.response?.data?.message || "Failed to save region",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // Delete region
   const deleteRegion = async (regionId) => {
     setLoading(true);
     try {
-      const response = await Axios.post(
-        `${baseUrl}region/remove`,
-        { regionId },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (response.data.success) {
-        notification.success({ message: "Region deleted successfully" });
-        fetchRegions();
-      } else {
-        notification.error({ message: "Failed to delete region" });
-      }
+      await Axios.delete(`${REGION_BASE_URL}/${regionId}`, {
+        headers: getAuthHeaders(token),
+      });
+      notification.success({ message: "Region deleted successfully" });
+      fetchRegions();
     } catch (error) {
-      console.error(error);
-      notification.error({ message: "Error deleting region" });
+      notification.error({
+        message: error?.response?.data?.message || "Failed to delete region",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const editRegion = async (values) => {
-    setLoading(true);
-    try {
-      const endpoint = `${baseUrl}region/update`;
-      const data = 
-       { regionId: selectedRegion.id, name: values.name }
-       
-      const response = await Axios.put(endpoint, data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.data.success) {
-        notification.success({ message: `Region ${isEditing ? "updated" : "created"} successfully` });
-        fetchRegions();
-        form.resetFields();
-        setIsModalOpen(false);
-        setIsEditing(false);
-        setSelectedRegion(null);
-      } else {
-        notification.error({ message: `Failed to ${isEditing ? "update" : "create"} region` });
-      }
-    } catch (error) {
-      console.error(error);
-      notification.error({ message: `Error ${isEditing ? "updating" : "creating"} region` });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Handle search
-  const handleSearch = (e) => {
-    const value = e.target.value.toLowerCase();
+  const handleSearch = (event) => {
+    const value = event.target.value.toLowerCase();
     setSearchText(value);
-    const filtered = regions.filter((region) =>
-      region.name.toLowerCase().includes(value)
+    setFilteredRegions(
+      regions.filter((region) =>
+        String(region.name || "").toLowerCase().includes(value),
+      ),
     );
-    setFilteredRegions(filtered);
   };
 
   const columns = [
@@ -255,9 +151,12 @@ const RegionManagement = () => {
     },
     {
       title: "Created At",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (date) => new Date(date).toLocaleString(),
+      dataIndex: "created_at",
+      key: "created_at",
+      render: (value, record) => {
+        const date = value || record.createdAt;
+        return date ? new Date(date).toLocaleString() : "N/A";
+      },
     },
     {
       title: "Actions",
@@ -270,19 +169,14 @@ const RegionManagement = () => {
           <Button
             type="link"
             onClick={() => {
-              setIsEditing(true);
               setSelectedRegion(record);
-              setIsModalOpen(true);
               form.setFieldsValue({ name: record.name });
+              setIsModalOpen(true);
             }}
           >
             Edit
           </Button>
-          <Button
-            type="link"
-            danger
-            onClick={() => deleteRegion(record.id)}
-          >
+          <Button type="link" danger onClick={() => deleteRegion(record.id)}>
             Delete
           </Button>
         </Space>
@@ -290,20 +184,13 @@ const RegionManagement = () => {
     },
   ];
 
-  const pageVariants = {
-    initial: { opacity: 0, x: "5vw" },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: "-5vw" },
-  };
-
   return (
     <motion.div
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={pageVariants}
+      initial={{ opacity: 0, x: "5vw" }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: "-5vw" }}
       transition={{ duration: 0.5 }}
-      style={{padding:20}}
+      style={{ padding: 20 }}
     >
       <div className="flex flex-justify-between">
         <div>
@@ -315,52 +202,43 @@ const RegionManagement = () => {
               onChange={handleSearch}
               style={{ width: 300 }}
             />
-            
           </Space>
         </div>
-        <div className="flex" style={{marginBottom:20}}>
-      <Button
+        <Button
           type="primary"
+          style={{ background: "var(--primary-color)" }}
           onClick={() => {
-            setIsModalOpen(true);
-            form.resetFields();
-            setIsEditing(false);
             setSelectedRegion(null);
+            form.resetFields();
+            setIsModalOpen(true);
           }}
-          style={{background: 'var(--primary-color)'}}
         >
           Add Region
         </Button>
       </div>
-      </div>
-      
+
       <Table
-        columns={columns}
         dataSource={filteredRegions}
-        rowKey="id"
+        columns={columns}
         loading={loading}
-        bordered
+        rowKey="id"
         className="admin-table"
       />
 
       <Modal
-        title={isEditing ? "Edit Region" : "Add Region"}
+        title={selectedRegion ? "Edit Region" : "Add Region"}
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
-        footer={null}
+        onOk={() => form.submit()}
+        confirmLoading={loading}
       >
-        <Form form={form} onFinish={isEditing ? editRegion: handleSubmit} layout="vertical">
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Form.Item
             name="name"
-            label="Region Name"
+            label="Name"
             rules={[{ required: true, message: "Please enter the region name" }]}
           >
-            <Input placeholder="Enter region name" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading}>
-              {isEditing ? "Update" : "Create"}
-            </Button>
+            <Input />
           </Form.Item>
         </Form>
       </Modal>

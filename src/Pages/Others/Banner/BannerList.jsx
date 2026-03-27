@@ -1,283 +1,203 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Form, Input, Button, Upload, Select, Modal, Table, message } from 'antd';
-import { UploadOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Button, Form, Input, Modal, Select, Table, Upload, message } from "antd";
+import { motion } from "framer-motion";
+import { UploadOutlined } from "@ant-design/icons";
+import { ADMIN_BASE_URL, BANNER_BASE_URL } from "../../../api/config";
+import { uploadTalentImage } from "../../../api/uploads";
+import UnsupportedFeature from "../../../Components/UnsupportedFeature/UnsupportedFeature";
 
 const { Option } = Select;
 
 const AppBannerManagement = () => {
   const [banners, setBanners] = useState([]);
   const [users, setUsers] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm();
   const [selectedBanner, setSelectedBanner] = useState(null);
-  const [bannerProducts, setBannerProducts] = useState([]);
-  const [isAddProductModalVisible, setIsAddProductModalVisible] = useState(false);
-  const [addProductForm] = Form.useForm();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [fileList, setFileList] = useState([]);
+  const [form] = Form.useForm();
 
-  const base_url = 'https://api-bloomzon-com.onrender.com'; // Replace with your actual base URL
+  const fetchBanners = async () => {
+    const response = await axios.get(BANNER_BASE_URL);
+    setBanners(response.data || []);
+  };
+
+  const fetchUsers = async () => {
+    const response = await axios.get(`${ADMIN_BASE_URL}/users`, {
+      params: { compact: true, role: "all", limit: 200 },
+    });
+    setUsers(response.data?.data?.items || []);
+  };
 
   useEffect(() => {
     fetchBanners();
     fetchUsers();
   }, []);
 
-  const fetchBanners = async () => {
-    try {
-      const response = await axios.post(`${base_url}/getAppBanner`);
-      setBanners(response.data);
-    } catch (error) {
-      console.error('Error fetching banners:', error);
-      message.error('Failed to fetch banners.');
-    }
-  };
-
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get(
-        'https://bloomzon-server.vercel.app/api/v1/user/get-all-users'
-      );
-      setUsers(response.data.data);
-      console.log('the user data ', response.data)
-      
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      message.error('Failed to fetch users.');
-    }
-  };
-
-  const showModal = (banner = null) => {
-    setSelectedBanner(banner);
-    if (banner) {
-      form.setFieldsValue({
-        title: banner.title,
-        keywords: banner.keywords,
-        creatorID: banner.creatorID,
-      });
-    } else {
-      form.resetFields();
-    }
-    setIsModalVisible(true);
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
-
-    const handleAddProductCancel = () => {
-    setIsAddProductModalVisible(false);
-  };
-
   const handleCreateOrUpdateBanner = async (values) => {
     try {
-      const formData = new FormData();
-      formData.append('title', values.title);
-      formData.append('keywords', values.keywords);
-      formData.append('creatorID', values.creatorID);
-      formData.append('image', values.image.file);
-      if (selectedBanner) {
-        formData.append('previousImage', selectedBanner.image);
-        await axios.post(`${base_url}/updateBanner`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        message.success('Banner updated successfully.');
-      } else {
-        await axios.post(`${base_url}/createBanner`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        message.success('Banner created successfully.');
+      let image = selectedBanner?.image || "";
+
+      if (fileList[0]?.originFileObj) {
+        image = await uploadTalentImage(fileList[0].originFileObj);
       }
-      fetchBanners();
+
+      const payload = {
+        title: values.title,
+        keywords: values.keywords,
+        image,
+        enabled: values.enabled || "FALSE",
+        numberOfProducts: Number(values.numberOfProducts || 0),
+        createdAt: selectedBanner?.createdAt || new Date().toISOString(),
+        creatorID: Number(values.creatorID),
+      };
+
+      if (selectedBanner) {
+        await axios.put(`${BANNER_BASE_URL}/${selectedBanner.id}`, payload);
+        message.success("Banner updated successfully.");
+      } else {
+        await axios.post(BANNER_BASE_URL, payload);
+        message.success("Banner created successfully.");
+      }
+
       setIsModalVisible(false);
-    } catch (error) {
-      console.error('Error creating/updating banner:', error);
-      message.error(
-        selectedBanner
-          ? 'Failed to update banner.'
-          : 'Failed to create banner.'
-      );
-    }
-  };
-
-  const handleDeactivateBanner = async (id, enabled) => {
-    try {
-      await axios.post(`${base_url}/deactivateBanner`, { id, enabled });
-      message.success(`Banner ${enabled === 'Active' ? 'deactivated' : 'activated'} successfully.`);
+      setSelectedBanner(null);
+      setFileList([]);
+      form.resetFields();
       fetchBanners();
     } catch (error) {
-      console.error('Error deactivating banner:', error);
-      message.error('Failed to deactivate banner.');
+      message.error("Failed to save banner.");
     }
   };
 
-  const handleAddBannerProducts = async (values) => {
+  const handleDeleteBanner = async (id) => {
     try {
-      await axios.post(`${base_url}/addBannerProducts`, {
-        bannerID: selectedBanner.id,
-        productID: values.productID,
-      });
-      message.success('Product added to banner successfully.');
-      fetchBannerProducts(selectedBanner.id);
-      setIsAddProductModalVisible(false);
+      await axios.delete(`${BANNER_BASE_URL}/${id}`);
+      message.success("Banner deleted successfully.");
+      fetchBanners();
     } catch (error) {
-      console.error('Error adding product to banner:', error);
-      message.error('Failed to add product to banner.');
+      message.error("Failed to delete banner.");
     }
-  };
-
-    const fetchBannerProducts = async (bannerId) => {
-    try {
-      const response = await axios.post(
-        `${base_url}/getBannerProductsByID`,
-        { bannerID: bannerId }
-      );
-      setBannerProducts(response.data);
-    } catch (error) {
-      console.error('Error fetching banner products:', error);
-      message.error('Failed to fetch banner products.');
-      setBannerProducts([]);
-    }
-  };
-
-  const columns = [
-    { title: 'Title', dataIndex: 'title', key: 'title' },
-    { title: 'Keywords', dataIndex: 'keywords', key: 'keywords' },
-    {
-      title: 'Image',
-      dataIndex: 'image',
-      key: 'image',
-      render: (image) => <img src={image} alt="Banner" style={{ maxWidth: '50px' }} />,
-    },
-    { title: 'Enabled', dataIndex: 'enabled', key: 'enabled' },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (text, record) => (
-        <>
-          <Button size="small" onClick={() => showModal(record)}>
-            Edit
-          </Button>
-          <Button
-            size="small"
-            onClick={() =>
-              handleDeactivateBanner(record.id, record.enabled === 'Active' ? 'DISABLED' : 'Active')
-            }
-            style={{ marginLeft: '8px' }}
-          >
-            {record.enabled === 'Active' ? 'Deactivate' : 'Activate'}
-          </Button>
-            <Button size="small" onClick={() => {
-              setSelectedBanner(record);
-              fetchBannerProducts(record.id);
-              setIsAddProductModalVisible(true);
-            }} style={{ marginLeft: '8px' }}>
-              Add Product
-            </Button>
-        </>
-      ),
-    },
-  ];
-
-  const productColumns = [
-    { title: 'Product ID', dataIndex: 'id', key: 'id' },
-    { title: 'Title', dataIndex: 'title', key: 'title' },
-    { title: 'Price', dataIndex: 'price', key: 'price' },
-  ];
-
-  const pageVariants = {
-    initial: { opacity: 0 },
-    in: { opacity: 1 },
-    out: { opacity: 0 },
-  };
-
-  const pageTransition = {
-    type: 'tween',
-    ease: 'anticipate',
-    duration: 0.5,
   };
 
   return (
-    <motion.div
-      initial="initial"
-      animate="in"
-      exit="out"
-      variants={pageVariants}
-      transition={pageTransition}
-      className='p-[20px]'
-    >
-        <div className="flex items-center justify-between">
-            <h1 className='font-semibold text-[23px]'>App Banner Management</h1>
-            <Button type="primary" onClick={() => showModal()} style={{backgroundColor: 'var(--primary-color)'}}>
-                Create Banner
-            </Button>
-        </div>
-      <Table dataSource={banners} columns={columns} rowKey="id" className='admin-table'/>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-[20px]">
+      <div className="flex items-center justify-between">
+        <h1 className="font-semibold text-[23px]">App Banner Management</h1>
+        <Button
+          type="primary"
+          onClick={() => {
+            setSelectedBanner(null);
+            form.resetFields();
+            setFileList([]);
+            setIsModalVisible(true);
+          }}
+          style={{ backgroundColor: "var(--primary-color)" }}
+        >
+          Create Banner
+        </Button>
+      </div>
+
+      <Table
+        dataSource={banners}
+        rowKey="id"
+        className="admin-table"
+        columns={[
+          { title: "Title", dataIndex: "title", key: "title" },
+          { title: "Keywords", dataIndex: "keywords", key: "keywords" },
+          {
+            title: "Image",
+            dataIndex: "image",
+            key: "image",
+            render: (image) => (image ? <img src={image} alt="Banner" style={{ maxWidth: 50 }} /> : "N/A"),
+          },
+          { title: "Enabled", dataIndex: "enabled", key: "enabled" },
+          {
+            title: "Actions",
+            key: "actions",
+            render: (_, record) => (
+              <>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    setSelectedBanner(record);
+                    form.setFieldsValue(record);
+                    setFileList(
+                      record.image
+                        ? [{ uid: String(record.id), name: "image", status: "done", url: record.image }]
+                        : [],
+                    );
+                    setIsModalVisible(true);
+                  }}
+                >
+                  Edit
+                </Button>
+                <Button
+                  size="small"
+                  danger
+                  onClick={() => handleDeleteBanner(record.id)}
+                  style={{ marginLeft: 8 }}
+                >
+                  Delete
+                </Button>
+              </>
+            ),
+          },
+        ]}
+      />
+
+      <UnsupportedFeature
+        title="Banner product attachment is not integrated"
+        description="The current backend banner module supports banner CRUD, but not the old add-banner-products workflow from the deprecated service."
+      />
 
       <Modal
-        title={selectedBanner ? 'Update Banner' : 'Create Banner'}
-        visible={isModalVisible}
-        onCancel={handleCancel}
+        title={selectedBanner ? "Update Banner" : "Create Banner"}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
-        <Form form={form} onFinish={handleCreateOrUpdateBanner}>
+        <Form form={form} onFinish={handleCreateOrUpdateBanner} layout="vertical">
           <Form.Item name="title" label="Title" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
           <Form.Item name="keywords" label="Keywords" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item
-            name="image"
-            label="Image"
-            valuePropName="fileList"
-            getValueFromEvent={(e) => {
-              if (Array.isArray(e)) {
-                return e;
-              }
-              return e && e.fileList;
-            }}
-            rules={[{ required: !selectedBanner }]}
-          >
-            <Upload listType="picture" maxCount={1}>
+          <Form.Item label="Image">
+            <Upload
+              listType="picture"
+              maxCount={1}
+              beforeUpload={() => false}
+              fileList={fileList}
+              onChange={({ fileList: nextFileList }) => setFileList(nextFileList)}
+            >
               <Button icon={<UploadOutlined />}>Upload</Button>
             </Upload>
           </Form.Item>
-          <Form.Item
-            name="creatorID"
-            label="Creator ID"
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="creatorID" label="Creator ID" rules={[{ required: true }]}>
             <Select>
-              {users?.map((user) => (
+              {users.map((user) => (
                 <Option key={user.id} value={user.id}>
-                  {user.name} ({user.id})
+                  {user.name || user.email} ({user.id})
                 </Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              {selectedBanner ? 'Update' : 'Create'}
-            </Button>
+          <Form.Item name="enabled" label="Enabled">
+            <Select
+              options={[
+                { value: "TRUE", label: "TRUE" },
+                { value: "FALSE", label: "FALSE" },
+              ]}
+            />
           </Form.Item>
-        </Form>
-      </Modal>
-
-      <Modal
-        title="Add Product to Banner"
-        visible={isAddProductModalVisible}
-        onCancel={handleAddProductCancel}
-        footer={null}
-      >
-        <Table dataSource={bannerProducts} columns={productColumns} rowKey="id" />
-        <Form form={addProductForm} onFinish={handleAddBannerProducts}>
-          <Form.Item name="productID" label="Product ID" rules={[{ required: true }]}>
+          <Form.Item name="numberOfProducts" label="Number Of Products">
             <Input type="number" />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              Add Product
+              {selectedBanner ? "Update" : "Create"}
             </Button>
           </Form.Item>
         </Form>

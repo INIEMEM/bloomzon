@@ -1,134 +1,138 @@
-import React, { useState, useEffect, useContext } from "react";
-import { Table, Button, Space, message, Input } from "antd";
-import { MainContext } from "../../Context/Context";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { Button, Input, Space, Table, message } from "antd";
 import Axios from "axios";
+import { useLocation, useNavigate } from "react-router-dom";
 import UserMatrxs from "../../Components/UserMatrixs/UserMatrxs";
-import { useNavigate } from "react-router-dom";
+import { MainContext } from "../../Context/Context";
+import { ADMIN_BASE_URL, getAuthHeaders } from "../../api/config";
+
 const { Search } = Input;
+
 const AllSellers = () => {
-  const [sellers, setSellers] = useState([]);
+  const { token } = useContext(MainContext);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isUserScreen = location.pathname.includes("/dashboard/user/all");
+  const role = isUserScreen ? "all" : "seller";
+
+  const [users, setUsers] = useState([]);
+  const [visibleUsers, setVisibleUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filteredUsers, setFilteredUsers] = useState(sellers); // For table data
-  const [searchQuery, setSearchQuery] = useState(""); // For search input
-  const {baseUrl, token} = useContext(MainContext);
-  const navigate =  useNavigate();
-  const url = window.location.href;
+  const [searchQuery, setSearchQuery] = useState("");
 
-  console.log('the url', url)
-  const fetchSellers = async () => {
-    try {
-      setLoading(true);
-      const response = await Axios({
-        method: 'get',
-        url: `${baseUrl}admin/seller`,
-        headers: {
-          Authorization: 'Bearer ' + token,
-        }
-      });
-      setSellers(response.data.user);
-      setFilteredUsers(response.data.user);
+  const title = isUserScreen ? "All Users" : "All Sellers";
 
-      console.log('the sellers list', response.data.user)
-    } catch (error) {
-      message.error("Failed to fetch sellers. Please try again.");
-      console.log(error)
-      if(error?.response?.statusText == "Unauthorized"){
-        navigate('../../')
+  const applyLocalFilters = (items, query, type = "all") => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    let filtered = items.filter((item) => {
+      if (!normalizedQuery) {
+        return true;
       }
-    } finally {
-      setLoading(false);
+
+      return (
+        `${item.firstname || ""} ${item.lastname || ""}`
+          .toLowerCase()
+          .includes(normalizedQuery) ||
+        String(item.email || "").toLowerCase().includes(normalizedQuery) ||
+        String(item.phone || "").toLowerCase().includes(normalizedQuery)
+      );
+    });
+
+    if (type === "suspended") {
+      filtered = filtered.filter((item) => item.adminLocked);
     }
+
+    if (type === "active") {
+      filtered = filtered.filter(
+        (item) => !item.adminLocked && !item.adminBanned,
+      );
+    }
+
+    if (type === "banned") {
+      filtered = filtered.filter((item) => item.adminBanned);
+    }
+
+    return filtered;
   };
-  const fetchUsers = async() => {
+
+  const fetchUsers = async (query = "") => {
     try {
       setLoading(true);
-      const response = await Axios({
-        method: 'get',
-        url: `${baseUrl}api/v1/admin`,
-        headers: {
-          Authorization: 'Bearer ' + token,
-        }
+      const response = await Axios.get(`${ADMIN_BASE_URL}/users`, {
+        headers: getAuthHeaders(token),
+        params: {
+          role,
+          page: 1,
+          limit: 100,
+          search: query || undefined,
+        },
       });
-      setSellers(response.data.user);
-      setFilteredUsers(response.data.user);
 
-      console.log('the sellers list', response.data.user)
+      const items = response.data?.data?.items || [];
+      setUsers(items);
+      setVisibleUsers(applyLocalFilters(items, query));
     } catch (error) {
-      message.error("Failed to fetch sellers. Please try again.");
-      console.log(error)
-      if(error?.response?.statusText == "Unauthorized"){
-        navigate('../../')
+      message.error("Failed to fetch admin users.");
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        navigate("/");
       }
     } finally {
       setLoading(false);
-    }
-  }
-
-  const handleAction = async (action, sellerId, name) => {
-
-      try {
-        const response = await Axios({
-          method: 'put',
-          url: `${baseUrl}admin/${action}?userId=${sellerId}`,
-          headers: {
-            Authorization: 'Bearer ' + token,
-          },
-          data: {
-            userId: sellerId
-          }
-        });
-        message.success(`${name}'s account has been Updated`) 
-        console.log(response.data);
-        fetchSellers()
-      } catch (error) {
-        message.error('an error occoured');
-        console.error('the ban error', error)
-      }
-    }
-  
-  
-  const filterUsers = (type) => {
-    switch (type) {
-      case "all":
-        setFilteredUsers(sellers);
-        break;
-      case "suspended":
-        setFilteredUsers(sellers.filter((u) => u.adminLocked));
-        break;
-      case "active":
-        setFilteredUsers(sellers.filter((u) => !u.adminLocked));
-        break;
-      case "banned":
-        setFilteredUsers(sellers.filter((u) => u.adminBanned));
-        break;
-      default:
-        setFilteredUsers(sellers);
     }
   };
 
   useEffect(() => {
-    if(url.includes('dashboard/sellers/all'))
-    {
-      fetchSellers();
+    fetchUsers();
+  }, [role]);
+
+  const handleAction = async (action, userId, name) => {
+    try {
+      await Axios.patch(
+        `${ADMIN_BASE_URL}/users/${userId}/access`,
+        { action },
+        { headers: getAuthHeaders(token) },
+      );
+
+      message.success(`${name}'s account was updated successfully.`);
+      fetchUsers(searchQuery);
+    } catch (error) {
+      message.error(
+        error?.response?.data?.message || "Failed to update account access.",
+      );
     }
-    if (url.includes('dashboard/user/all')) 
-    {
-      fetchUsers();
-    }
-  }, [url]);
+  };
+
+  const filterUsers = (type) => {
+    setVisibleUsers(applyLocalFilters(users, searchQuery, type));
+  };
+
+  const handleSearch = (value) => {
+    setSearchQuery(value);
+    setVisibleUsers(applyLocalFilters(users, value));
+  };
+
+  const totals = useMemo(
+    () => ({
+      total: users.length,
+      suspended: users.filter((item) => item.adminLocked).length,
+      banned: users.filter((item) => item.adminBanned).length,
+      active: users.filter((item) => !item.adminLocked && !item.adminBanned)
+        .length,
+    }),
+    [users],
+  );
 
   const columns = [
     {
       title: "S/N",
-      dataIndex: "sn",
       key: "sn",
-      render: (_, __, index) => index + 1, // Generate serial numbers
+      render: (_, __, index) => index + 1,
     },
     {
       title: "Name",
-      dataIndex: "name",
       key: "name",
-      render: (_, record) => `${record.firstname} ${record.lastname}`,
+      render: (_, record) => record.name || `${record.firstname} ${record.lastname}`.trim(),
     },
     {
       title: "Email",
@@ -136,47 +140,63 @@ const AllSellers = () => {
       key: "email",
     },
     {
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
+      render: (value) => String(value || "buyer").toUpperCase(),
+    },
+    {
       title: "Date Registered",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (date) => new Date(date).toLocaleDateString(),
+      render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
     },
     {
       title: "Actions",
       key: "actions",
       render: (_, record) => (
-        <Space>
+        <Space wrap>
           <Button
-            type="default"
             danger
-            onClick={() => handleAction("ban-account", record.id, record.firstname)}
+            onClick={() =>
+              handleAction("ban", record.id, record.firstname || record.name)
+            }
           >
-            Ban User
+            Ban
           </Button>
           <Button
-            type="default"
-            
-            onClick={() => handleAction("unban-account", record.id, record.firstname)}
+            onClick={() =>
+              handleAction("unban", record.id, record.firstname || record.name)
+            }
           >
-            UnBan User
+            Unban
           </Button>
           <Button
-            type="default"
-            onClick={() => handleAction("suspend-account", record.id, record.firstname)}
+            onClick={() =>
+              handleAction(
+                "suspend",
+                record.id,
+                record.firstname || record.name,
+              )
+            }
           >
-            Suspend User
+            Suspend
           </Button>
           <Button
-            type="default"
-            onClick={() => handleAction("activate-account", record.id, record.firstname)}
-            style={{ color: '#41CCC7', borderColor: '#41CCC7' }}
+            style={{ color: "#41CCC7", borderColor: "#41CCC7" }}
+            onClick={() =>
+              handleAction(
+                "activate",
+                record.id,
+                record.firstname || record.name,
+              )
+            }
           >
-            Activate User
+            Activate
           </Button>
           <Button
             type="link"
             onClick={() => navigate(`/dashboard/sellers/${record.id}`)}
-            style={{ color: 'var(--primary-color)', borderColor: 'var(--primary-color)' }}
           >
             View Details
           </Button>
@@ -184,69 +204,79 @@ const AllSellers = () => {
       ),
     },
   ];
-  const handleSearch = (value) => {
-    
-    // console.log('value', value)
-    setFilteredUsers(
-      sellers.filter(
-        (item) =>
-          item.firstname.toLowerCase().includes(value.toLowerCase()) ||
-          item.email.toLowerCase().includes(value.toLowerCase())
-      )
-    );
-  };
 
-  
- 
   return (
-    <div style={{padding: 20}}>
-      <h1>All Sellers</h1>
-      {/* User Matrixes  */}
+    <div style={{ padding: 20 }}>
+      <h1>{title}</h1>
+
       <div className="flex" style={{ gap: 20 }}>
         <UserMatrxs
-          matrix={sellers.length}
-          title="All users"
+          matrix={totals.total}
+          title={isUserScreen ? "All users" : "All sellers"}
           border={true}
-          icon={<i class="fa fa-user-circle" aria-hidden="true" style={{fontSize:'2rem', color: '#41CCC7 '}}></i>}
+          icon={
+            <i
+              className="fa fa-user-circle"
+              aria-hidden="true"
+              style={{ fontSize: "2rem", color: "#41CCC7" }}
+            />
+          }
           onClick={() => filterUsers("all")}
         />
         <UserMatrxs
-          matrix={sellers.filter((u) => u.adminLocked).length}
+          matrix={totals.suspended}
           title="Suspended users"
           border={true}
           onClick={() => filterUsers("suspended")}
-          icon={<i class="fa fa-user-circle" aria-hidden="true" style={{fontSize:'2rem', color: '#F67F00 '}}></i>}
+          icon={
+            <i
+              className="fa fa-user-circle"
+              aria-hidden="true"
+              style={{ fontSize: "2rem", color: "#F67F00" }}
+            />
+          }
         />
         <UserMatrxs
-          matrix={sellers.filter((u) => u.adminBanned).length}
-          title="Banned user"
+          matrix={totals.banned}
+          title="Banned users"
           border={true}
           onClick={() => filterUsers("banned")}
-          icon={<i class="fa fa-user-times" aria-hidden="true" style={{fontSize:'2rem', color: '#F42121'}}></i>}
+          icon={
+            <i
+              className="fa fa-user-times"
+              aria-hidden="true"
+              style={{ fontSize: "2rem", color: "#F42121" }}
+            />
+          }
         />
-         <UserMatrxs
-          
-          matrix={sellers.filter((u) => !u.adminLocked).length}
+        <UserMatrxs
+          matrix={totals.active}
           title="Active users"
           border={true}
           onClick={() => filterUsers("active")}
-          icon={<i class="fa fa-user-plus" aria-hidden="true" style={{fontSize:'2rem', color: '#41CCC7 '}}></i>}
+          icon={
+            <i
+              className="fa fa-user-plus"
+              aria-hidden="true"
+              style={{ fontSize: "2rem", color: "#41CCC7" }}
+            />
+          }
         />
       </div>
-      {/* Search Field */}
+
       <Search
-        type="text"
-        placeholder="Search by name or email"
+        placeholder="Search by name, email, or phone"
         onSearch={handleSearch}
+        onChange={(event) => handleSearch(event.target.value)}
         allowClear
-        style={{ margin: "1rem 0", padding: "0.5rem", width: "300px" }}
+        value={searchQuery}
+        style={{ margin: "1rem 0", width: 320 }}
       />
 
-      {/* User Table */}
       <Table
         columns={columns}
-        dataSource={filteredUsers}
-        rowKey={(record) => record.id}
+        dataSource={visibleUsers}
+        rowKey="id"
         loading={loading}
         pagination={{ pageSize: 10 }}
         className="admin-table overflow-x-auto"

@@ -8,10 +8,12 @@ import Background from '../../Components/Background/Background';
 import { MainContext } from '../../Context/Context';
 import { Link, useNavigate } from 'react-router-dom';
 import cartImage from './assets/pp.png'
+
 const Login = () => {
   const [isLoading, setIsLoadind] = useState(false)
   const {baseUrl, setToken} = useContext(MainContext);
   const navigate = useNavigate()
+
   const handleLogin = async (values) => {
     setIsLoadind(true)
     try {
@@ -20,25 +22,17 @@ const Login = () => {
         url: `${baseUrl}auth/login`,
         data: {
           email: values.email,
-          password: values.password
+          password: values.password,
         }
       });
-      console.log('Login successful:', response.data);
       const data = response.data;
-      if (data?.token) {
-        setToken(data.token);
+
+      const accessToken = data?.token || data?.data?.accessToken;
+
+      if (accessToken) {
+        setToken(accessToken);
         message.success("Login successful!");
         navigate('/dashboard');
-      } else if (data?.base32) {
-        // User needs to complete 2FA
-        message.info("Complete 2FA to continue");
-        navigate('/two-factor', {
-          state: {
-            email: values.email,
-            base32: data.base32,
-            otpauth_url: data.url,
-          }
-        });
       } else {
         message.error(data.message || "Unknown response from server");
       }
@@ -46,12 +40,12 @@ const Login = () => {
       // navigate('../dashboard');
     } catch (error) {
       console.error('Login failed:', error );
-      if(error?.message){
-          message.error(error?.message)
-      }else{
-
-        message.error(error?.response?.data?.error)
-      }
+      message.error(
+        error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          "Login failed",
+      );
       setIsLoadind(false)
       
     }

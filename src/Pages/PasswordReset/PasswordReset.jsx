@@ -2,7 +2,7 @@ import React from 'react'
 import { useState, useContext } from 'react';
 import Background from '../../Components/Background/Background';
 import { MainContext } from '../../Context/Context';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Typography, message } from 'antd';
 import Axios from 'axios';
 import { motion } from 'framer-motion';
@@ -11,25 +11,29 @@ import cartImage from './assets/ppp.png'
 const PasswordReset = () => {
   const [isLoading, setIsLoadind] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation();
   const {baseUrl} = useContext(MainContext);
+  const resetEmail = location.state?.email || "";
+
   const handlePasswordReset = async (values) => {
     setIsLoadind(true)
     try {
-      const response = await Axios({
+      await Axios({
         method: 'post',
-        url: `${baseUrl}api/v1/auth/password-reset`,
+        url: `${baseUrl}auth/password-reset`,
         data: {
-          token: values.token,
+          email: values.email,
+          otp: values.otp,
           password: values.password,
           passwordConfirmation: values.passwordConfirmation
         }
       });
-      console.log('Login successful:', response.data);
+      message.success("Password reset successfully");
       navigate('../');
       setIsLoadind(false)
     } catch (error) {
-      console.error('Login failed:', error );
-      message.error('Login Failed')
+      console.error('Password reset failed:', error );
+      message.error(error?.response?.data?.message || 'Password reset failed')
       setIsLoadind(false)
       
     }
@@ -95,11 +99,22 @@ const PasswordReset = () => {
           name="login"
           layout="vertical"
           onFinish={handlePasswordReset}
+          initialValues={{
+            email: resetEmail,
+          }}
         >
           <Form.Item
-            label="Token"
-            name="token"
-            rules={[{ required: true, message: 'Please enter your token!' }]}
+            label="Email"
+            name="email"
+            rules={[{ required: true, message: 'Please enter your email!' }]}
+          >
+            <Input placeholder="admin@bloomzon.com" type="email" />
+          </Form.Item>
+
+          <Form.Item
+            label="OTP"
+            name="otp"
+            rules={[{ required: true, message: 'Please enter your OTP!' }]}
           >
             <Input placeholder="12345" type="text" />
           </Form.Item>
@@ -120,7 +135,7 @@ const PasswordReset = () => {
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={isLoading} block style={{background: '#F67F00', marginTop:20}}>
-              Login
+              Reset Password
             </Button>
           </Form.Item>
         </Form>

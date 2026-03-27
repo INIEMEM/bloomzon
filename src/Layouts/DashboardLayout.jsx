@@ -12,6 +12,15 @@ const DashboardLayout = () => {
   const [toggle, setToggle] = useState(false);
   const { user } = useContext(MainContext);
   const {token: {colorBgContainer}} = theme.useToken()
+  const displayName =
+    user?.name ||
+    [user?.firstname || user?.first_name, user?.lastname || user?.last_name]
+      .filter(Boolean)
+      .join(' ')
+      .trim() ||
+    user?.email ||
+    'Admin User';
+  const displayRole = user?.role || 'admin';
   
   return (
     <Layout style={{position:'relative'}}>
@@ -35,10 +44,10 @@ const DashboardLayout = () => {
             </span>
             <span><BellFilled style={{fontSize: 20, color: '#333'}}/></span>
             <div className="flex flex-align" style={{gap:10}}>
-              <div className='profile-image' style={{fontSize: '2rem', color: '#333'}}><i class="fa fa-user-circle" aria-hidden="true"></i></div>
+              <div className='profile-image' style={{fontSize: '2rem', color: '#333'}}><i className="fa fa-user-circle" aria-hidden="true"></i></div>
               <div className='flex flex-column'>
-                <h4 style={{color: '#333'}}>{user.firstname}</h4>
-                <span style={{marginTop:-45, color: 'var(--primary-color)', fontSize: '0.8rem'}}>{user.role}</span>
+                <h4 style={{color: '#333'}}>{displayName}</h4>
+                <span style={{marginTop:-45, color: 'var(--primary-color)', fontSize: '0.8rem'}}>{displayRole}</span>
               </div>
             </div>
           </div>

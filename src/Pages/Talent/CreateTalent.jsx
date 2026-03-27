@@ -5,13 +5,13 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css"; 
+import { TALENT_BASE_URL } from "../../api/config";
+import { uploadTalentImage, uploadTalentVideo } from "../../api/uploads";
 const { Dragger } = Upload;
 const { TextArea } = Input;
 
 const api = axios.create({
-  baseURL: window.location.pathname.includes("localhost")
-    ? "http://localhost:8000"
-    : "https://blosom-tv-server.onrender.com",
+  baseURL: TALENT_BASE_URL,
 });
 
 const CreateTalent = () => {
@@ -27,18 +27,16 @@ const CreateTalent = () => {
   const [videoTitle, setVideoTitle] = useState('');
   const uploadToCloudinary = async (file, onProgress, type) => 
     {
-    const formData = new FormData();
-    formData.append("file", file);
-    const response = await api.post(`${type == 'image' ? 'UploadImage': '/UploadVideo'}`, formData, {
-      onUploadProgress: (event) => {
-        const percent = Math.round((event.loaded * 100) / (event.total || 1));
-        onProgress(percent);
-      },
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data.url;
+    const handleProgress = (event) => {
+      const percent = Math.round((event.loaded * 100) / (event.total || 1));
+      onProgress(percent);
+    };
+
+    if (type === "image") {
+      return uploadTalentImage(file, handleProgress);
+    }
+
+    return uploadTalentVideo(file, handleProgress);
   };
   
   const getUploadProps = (category) => ({
@@ -171,7 +169,7 @@ const CreateTalent = () => {
 
     };
     try {
-      await api.post("/CreateSession", payload);
+      await api.post("CreateSession", payload);
       message.success("Talent created successfully");
       console.log('the submitted data >>>', payload);
     } catch (error) {

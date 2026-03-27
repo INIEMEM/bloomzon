@@ -1,52 +1,50 @@
-import React, { useEffect, useState, useContext } from "react";
-import { Table, Button, Modal, Spin, message } from "antd";
+import React, { useContext, useEffect, useState } from "react";
+import { Button, Modal, Spin, Table, message } from "antd";
 import { motion } from "framer-motion";
-import { MainContext } from "../../Context/Context";
 import axios from "axios";
-
-
-// const baseURL = "https://yourapiurl.com/api/v1/shipping"; // Replace with your base URL.
+import { useNavigate } from "react-router-dom";
+import { MainContext } from "../../Context/Context";
+import { SHIPPING_BASE_URL, getAuthHeaders } from "../../api/config";
 
 const ShippingList = () => {
+  const { token } = useContext(MainContext);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [shippingData, setShippingData] = useState([]);
-  const {baseUrl, token} = useContext(MainContext)
-  
-  // Fetch all shipping methods
-  const fetchShippingMethods = async () => {
+
+  const fetchShippingCategories = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${baseUrl}api/v1/shipping`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.get(`${SHIPPING_BASE_URL}/categories`, {
+        headers: getAuthHeaders(token),
       });
-      setShippingData(response.data.data);
+      setShippingData(response.data?.data || []);
     } catch (error) {
-      message.error("Failed to fetch shipping methods.");
-      if(error?.response?.statusText == "Unauthorized"){
-        navigate('../../')
-      }
+      message.error("Failed to fetch logistics categories.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchShippingMethods();
-  }, []);
+    fetchShippingCategories();
+  }, [token]);
 
-  const deleteShippingMethod = async (id) => {
+  const deleteShippingCategory = async (id) => {
     Modal.confirm({
-      title: "Are you sure you want to delete this shipping method?",
+      title: "Are you sure you want to delete this logistics category?",
       onOk: async () => {
         setLoading(true);
         try {
-          axios.delete(`${baseUrl}api/v1/shipping/remove`, { shippingId: id }, {
-            headers: { Authorization: `Bearer ${token}` },
+          await axios.delete(`${SHIPPING_BASE_URL}/categories/${id}`, {
+            headers: getAuthHeaders(token),
           });
-          message.success("Shipping method deleted.");
-          fetchShippingMethods(); // Refresh data
+          message.success("Logistics category deleted.");
+          fetchShippingCategories();
         } catch (error) {
-          message.error("Failed to delete shipping method.");
+          message.error(
+            error?.response?.data?.message || "Failed to delete logistics category.",
+          );
         } finally {
           setLoading(false);
         }
@@ -61,24 +59,30 @@ const ShippingList = () => {
       key: "name",
     },
     {
-      title: "Rate",
-      dataIndex: "rate",
-      key: "rate",
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
+      render: (value) => (Number(value) === 1 ? "Active" : "Inactive"),
     },
     {
       title: "Actions",
       key: "actions",
-      render: (text, record) => (
+      render: (_, record) => (
         <span>
-          <Button type="link" href={`/dashboard/sellers/shipping/edit/${record.id}`}>
-            Edits
+          <Button
+            type="link"
+            onClick={() =>
+              navigate(`/dashboard/sellers/shipping/edit/${record.id}`)
+            }
+          >
+            Edit
           </Button>
-          <Button type="link" danger onClick={() => deleteShippingMethod(record.id)}>
+          <Button type="link" danger onClick={() => deleteShippingCategory(record.id)}>
             Delete
           </Button>
         </span>
@@ -87,13 +91,27 @@ const ShippingList = () => {
   ];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{padding:20}}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      style={{ padding: 20 }}
+    >
       <h1>Shipping</h1>
       <Spin spinning={loading}>
-        <Button type="primary" href="/dashboard/sellers/shipping/edit/2" style={{ marginBottom: 20, background: 'var(--primary-color)' }}>
-          Add Shipping Method
+        <Button
+          type="primary"
+          onClick={() => navigate("/dashboard/sellers/shipping/edit/new")}
+          style={{ marginBottom: 20, background: "var(--primary-color)" }}
+        >
+          Add Logistics Category
         </Button>
-        <Table columns={columns} dataSource={shippingData} className="admin-table" rowKey="id" />
+        <Table
+          columns={columns}
+          dataSource={shippingData}
+          className="admin-table"
+          rowKey="id"
+        />
       </Spin>
     </motion.div>
   );

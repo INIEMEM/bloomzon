@@ -3,6 +3,7 @@ import TalentCategoryCard from '../../Components/TalentCategory /TalentCategoryC
 import UserMatrxs from '../../Components/UserMatrixs/UserMatrxs'
 import { useLocation } from 'react-router-dom';
 import  Axios  from 'axios';
+import { TALENT_BASE_URL } from '../../api/config';
 const TalentCategories = () => {
   const location = useLocation();
   const isRequest = location.pathname.includes('request')
@@ -32,7 +33,7 @@ const TalentCategories = () => {
   const fetchTalent = async () => {
     try {
       const response = await Axios({
-        url: `https://blosom-tv-server.onrender.com/Sessions`,
+        url: `${TALENT_BASE_URL}/Sessions`,
         method: "post",
       });
       // console.log("Fetched Data:", response.data);

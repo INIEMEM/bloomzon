@@ -8,7 +8,7 @@ const BigGraphs = ({title, content, subTitle, links}) => {
       <div className="flex flex-justify-between">
         <p className='bigGraph-container-title'>{title}</p>
         <p onClick={()=>navigagte(`${links}`)}>
-          <i class="fa fa-ellipsis-h" aria-hidden="true"></i>
+          <i className="fa fa-ellipsis-h" aria-hidden="true"></i>
         </p>
       </div>
       <div className='bigGraph-container-content'>{content}</div>

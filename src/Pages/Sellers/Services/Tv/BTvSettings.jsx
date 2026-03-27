@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Card, Form, InputNumber, Button, message, Spin } from "antd";
 import axios from "axios";
 import { motion } from "framer-motion";
+import { BLOOMZONLIVE_BASE_URL } from "../../../../api/config";
 
 const BloomzonTVSettings = () => {
   const [form] = Form.useForm();
@@ -11,7 +12,7 @@ const BloomzonTVSettings = () => {
   const fetchSettings = async () => {
     try {
       const res = await axios.get(
-        "https://bloomzonserver.onrender.com/bloomzonlive/admin/bloomzon-tv-settings"
+        `${BLOOMZONLIVE_BASE_URL}/admin/bloomzon-tv-settings`
       );
       const data = res.data;
       form.setFieldsValue({
@@ -34,7 +35,7 @@ const BloomzonTVSettings = () => {
     setLoading(true);
     try {
       await axios.put(
-        "https://bloomzonserver.onrender.com/bloomzonlive/admin/bloomzon-tv-settings",
+        `${BLOOMZONLIVE_BASE_URL}/admin/bloomzon-tv-settings`,
         {
           id: 1, // always ID = 1 as per API
           ...values,

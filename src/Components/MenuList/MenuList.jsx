@@ -6,7 +6,7 @@ import { MainContext } from '../../Context/Context'
 import '../../Components/components.css'
 import logo from '../../Layouts/assets/bloomzon.png';
 const MenuList = ({toggle}) => {
-  const {currentUser} =  useContext(MainContext);
+  const { user } =  useContext(MainContext);
   const [userRole, setUserRole] = useState('super');
   const [adminType, setAdminType] = useState('driver');
   const [selectedKey, setSelectedKey] = useState('home');
@@ -16,6 +16,12 @@ const MenuList = ({toggle}) => {
   }; 
  
   const keys =  ['home', 'driver', 'vendor', 'hospitality','rentals' ];
+
+  useEffect(() => {
+    if (user?.role) {
+      setUserRole('super');
+    }
+  }, [user]);
  
 
   const serviceMenuConfig = {
@@ -73,9 +79,7 @@ const MenuList = ({toggle}) => {
      
     ],
     "B-Products": [
-      { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
-      { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
-     
+      { title: "Products", path: "../dashboard/products" },
     ],
     "B-Live": [
       { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
@@ -126,6 +130,11 @@ const MenuList = ({toggle}) => {
       <Menu.Item key="home" icon = {<HomeOutlined/>}>
         <Link to='/dashboard'>Dashboard</Link>
       </Menu.Item>
+      {(userRole?.includes('vendor') || userRole?.includes('super')) && (
+        <Menu.Item key="admin-orders" icon={<ShoppingOutlined />}>
+          <Link to="../dashboard/orders">Orders</Link>
+        </Menu.Item>
+      )}
       {(userRole?.includes('driver') || userRole?.includes('super')) &&
         (<Menu.SubMenu title = "Seller" key="sellers" icon = {<CarOutlined/>}>
           <Menu.Item key="allsellers">
@@ -163,7 +172,7 @@ const MenuList = ({toggle}) => {
             <Link to='../dashboard/user/all'>users</Link>
           </Menu.Item>
           {/* <Menu.Item key="vendorList">Vendor List</Menu.Item> */}
-          <Menu.Item key="orders">
+          <Menu.Item key="users-orders">
             <Link to='../dashboard/user/withdrawals'>Withdrawals</Link>
           </Menu.Item>
           {/* <Menu.Item key="delivery">
@@ -171,7 +180,7 @@ const MenuList = ({toggle}) => {
               Delivery Prices
             </Link>
           </Menu.Item> */}
-          <Menu.Item key="pickup">
+          <Menu.Item key="users-service-charge">
             <Link to='vendor/servicecharge'>
             Service Charges
               </Link>  
@@ -181,38 +190,13 @@ const MenuList = ({toggle}) => {
       {(userRole?.includes('vendor') || userRole?.includes('super')) && (
         (<Menu.SubMenu title="B-Products" key="P-r" icon={<ShoppingOutlined />}>
           <Menu.Item key='b-prosa' >
-            <Link to='../dashboard/user/all'>Products</Link>
+            <Link to='../dashboard/products'>Products</Link>
           </Menu.Item>
-          {/* <Menu.Item key="vendorList">Vendor List</Menu.Item> */}
-          <Menu.Item key="sales">
-            <Link to='../dashboard/user/withdrawals'>Sales</Link>
+          <Menu.Item key="products-users">
+            <Link to='../dashboard/user/all'>Users</Link>
           </Menu.Item>
-          <Menu.Item key="orders">
-            <Link to='../dashboard/user/withdrawals'>Orders</Link>
-          </Menu.Item>
-          <Menu.Item key="b-mees">
-            <Link to='../dashboard/user/withdrawals'>Messages</Link>
-          </Menu.Item>
-          <Menu.Item key="b-p-users">
-            <Link to='../dashboard/user/withdrawals'>Users</Link>
-          </Menu.Item>
-          <Menu.SubMenu key="b-p-sellrs">
-            <Menu.Item key="b-p-seller">      
-              <Link to='../dashboard/user/withdrawals'>Sellers</Link>
-            </Menu.Item>
-            <Menu.Item key="b-p-stores">
-            <Link to='../dashboard/user/withdrawals'>Stores</Link>
-          </Menu.Item>
-          </Menu.SubMenu>
-          {/* <Menu.Item key="delivery">
-            <Link to="vendor/delivery/prices">
-              Delivery Prices
-            </Link>
-          </Menu.Item> */}
-          <Menu.Item key="pickup">
-            <Link to='vendor/servicecharge'>
-            Service Charges
-              </Link>  
+          <Menu.Item key="products-sellers">
+            <Link to='../dashboard/sellers/all'>Sellers</Link>
           </Menu.Item>
         </Menu.SubMenu>)
       )}
@@ -222,7 +206,7 @@ const MenuList = ({toggle}) => {
             <Link to='../dashboard/user/all'>users</Link>
           </Menu.Item>
           {/* <Menu.Item key="vendorList">Vendor List</Menu.Item> */}
-          <Menu.Item key="orders">
+          <Menu.Item key="elite-orders">
             <Link to='../dashboard/user/withdrawals'>Withdrawals</Link>
           </Menu.Item>
           {/* <Menu.Item key="delivery">
@@ -230,7 +214,7 @@ const MenuList = ({toggle}) => {
               Delivery Prices
             </Link>
           </Menu.Item> */}
-          <Menu.Item key="pickup">
+          <Menu.Item key="elite-service-charge">
             <Link to='vendor/servicecharge'>
             Service Charges
               </Link>  
@@ -245,10 +229,10 @@ const MenuList = ({toggle}) => {
           {/* <Menu.Item key="House">
           <Link to='../dashboard/actions/transaction'>Transactions</Link>
           </Menu.Item> */}
-          <Menu.Item key="profile">
+          <Menu.Item key="actions-profile">
           <Link to='../dashboard/actions/profile'> Profile</Link>
           </Menu.Item>
-          <Menu.Item key="notifications">
+          <Menu.Item key="actions-notifications">
           <Link to='../dashboard/actions/notifications'>Notifications</Link>
           </Menu.Item>
           {/* <Menu.Item key="pays">
@@ -277,27 +261,27 @@ const MenuList = ({toggle}) => {
            <Link to='../dashboard/others/admins/banner'>Banner List</Link>
            </Menu.Item>
            
-           <Menu.Item key="createbanner">
+           <Menu.Item key="app-categories">
            <Link to='../dashboard/others/admins/createbanner'>Categories</Link>
            </Menu.Item>
-           <Menu.Item key="createbanner">
+           <Menu.Item key="app-deal-settings">
            <Link to='../dashboard/others/admins/createbanner'>Deal Settings</Link>
            </Menu.Item>
         </Menu.SubMenu>)
       }
       {(userRole?.includes('hospitality') || userRole?.includes('super')) &&
         (<Menu.SubMenu title = "Others"  key="others" icon = {<BankOutlined/>} >
-            <Menu.SubMenu title="Admins" key='Talents-section' >
-              <Menu.Item key="allad">
+            <Menu.SubMenu title="Admins" key='others-admins-section' >
+              <Menu.Item key="others-admins-all">
                 <Link to='../dashboard/others/admins'>All</Link>
               </Menu.Item>
-              <Menu.Item key="admes">
+              <Menu.Item key="others-admins-messages">
               <Link to='../dashboard/others/admins/messages'>Messages</Link>
               </Menu.Item>
-              <Menu.Item key="createbanner">
+              <Menu.Item key="others-admins-activities">
            <Link to='../dashboard/others/admins/createbanner'>Admin Activities</Link>
            </Menu.Item>
-              <Menu.Item key="adroles">
+              <Menu.Item key="others-admins-roles">
               <Link to='../dashboard/others/admins/roles'>Roles</Link>
               </Menu.Item>
             </Menu.SubMenu>
@@ -318,14 +302,14 @@ const MenuList = ({toggle}) => {
       }
       {(userRole?.includes('hospitality') || userRole?.includes('super')) &&
         (<Menu.SubMenu title = "Extras"  key="extas" icon = {<BankOutlined/>} >
-            <Menu.SubMenu title="Admins" key='Talents-section' >
-              <Menu.Item key="allad">
+            <Menu.SubMenu title="Admins" key='extras-admins-section' >
+              <Menu.Item key="extras-admins-dropshipping">
                 <Link to='../dashboard/others/admins'>Drop shippings</Link>
               </Menu.Item>
-              <Menu.Item key="admes">
+              <Menu.Item key="extras-admins-request-item-quotes">
               <Link to='../dashboard/others/admins/messages'>Request Item Quotes</Link>
               </Menu.Item>
-              <Menu.Item key="adroles">
+              <Menu.Item key="extras-admins-customizable-products">
               <Link to='../dashboard/others/admins/roles'>Customizable Products</Link>
               </Menu.Item>
             </Menu.SubMenu>
@@ -426,10 +410,10 @@ const MenuList = ({toggle}) => {
           {/* <Menu.Item key="House">
           <Link to='../dashboard/actions/transaction'>Transactions</Link>
           </Menu.Item> */}
-          <Menu.Item key="profile">
+          <Menu.Item key="legal-profile">
           <Link to='../dashboard/actions/profile'> Country</Link>
           </Menu.Item>
-          <Menu.Item key="notifications">
+          <Menu.Item key="legal-notifications">
           <Link to='../dashboard/actions/notifications'>Notifications</Link>
           </Menu.Item>
           {/* <Menu.Item key="pays">
