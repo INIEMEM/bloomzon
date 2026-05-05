@@ -69,7 +69,8 @@ const MenuList = ({toggle}) => {
     "B-TV": [
       { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
       { title: "Settings", path: "../dashboard/sellers/services/tv/settings" },
-      { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
+      { title: "Analytics", path: "../dashboard/sellers/services/tv/analytics" },
+      { title: "Orders", path: "../dashboard/sellers/services/tv/analytics" },
      
     ],
     "B-Products": [
@@ -104,7 +105,7 @@ const MenuList = ({toggle}) => {
     ],
     "B-Logistics": [
       { title: "All Sellers", path: "../dashboard/sellers/services/tv" },
-      { title: "Analytics", path: "../dashboard/sellers/services/real-estate/analytics" },
+      { title: "Analytics", path: "../dashboard/sellers/services/tv/analytics" },
      
     ],
     "B-Expo": [

@@ -14,47 +14,48 @@ const Login = () => {
   const navigate = useNavigate()
   const handleLogin = async (values) => {
     setIsLoadind(true)
-    try {
-      const response = await Axios({
-        method: 'post',
-        url: `${baseUrl}auth/login`,
-        data: {
-          email: values.email,
-          password: values.password
-        }
-      });
-      console.log('Login successful:', response.data);
-      const data = response.data;
-      if (data?.token) {
-        setToken(data.token);
-        message.success("Login successful!");
-        navigate('/dashboard');
-      } else if (data?.base32) {
-        // User needs to complete 2FA
-        message.info("Complete 2FA to continue");
-        navigate('/two-factor', {
-          state: {
-            email: values.email,
-            base32: data.base32,
-            otpauth_url: data.url,
-          }
-        });
-      } else {
-        message.error(data.message || "Unknown response from server");
-      }
-      setIsLoadind(false)
-      // navigate('../dashboard');
-    } catch (error) {
-      console.error('Login failed:', error );
-      if(error?.message){
-          message.error(error?.message)
-      }else{
+    navigate('/dashboard');
+    // try {
+    //   const response = await Axios({
+    //     method: 'post',
+    //     url: `${baseUrl}auth/login`,
+    //     data: {
+    //       email: values.email,
+    //       password: values.password
+    //     }
+    //   });
+    //   console.log('Login successful:', response.data);
+    //   const data = response.data;
+    //   if (data?.token) {
+    //     setToken(data.token);
+    //     message.success("Login successful!");
+    //     navigate('/dashboard');
+    //   } else if (data?.base32) {
+    //     // User needs to complete 2FA
+    //     message.info("Complete 2FA to continue");
+    //     navigate('/two-factor', {
+    //       state: {
+    //         email: values.email,
+    //         base32: data.base32,
+    //         otpauth_url: data.url,
+    //       }
+    //     });
+    //   } else {
+    //     message.error(data.message || "Unknown response from server");
+    //   }
+    //   setIsLoadind(false)
+    //   // navigate('../dashboard');
+    // } catch (error) {
+    //   console.error('Login failed:', error );
+    //   if(error?.message){
+    //       message.error(error?.message)
+    //   }else{
 
-        message.error(error?.response?.data?.error)
-      }
-      setIsLoadind(false)
+    //     message.error(error?.response?.data?.error)
+    //   }
+    //   setIsLoadind(false)
       
-    }
+    // }
   };
 
   return (

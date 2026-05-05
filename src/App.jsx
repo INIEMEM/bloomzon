@@ -103,6 +103,7 @@ import BloomzonTVAdminDashboard from './Pages/Sellers/Services/BloomzonTV/Bloomz
 import ReelsOrdersPage from './Pages/Sellers/Services/Reels/ReelsOrders';
 import AdminTVRequests from './Pages/Sellers/Services/Tv/BTv';
 import BloomzonTVSettings from './Pages/Sellers/Services/Tv/BTvSettings';
+import BloomzonTVAnalytics from './Pages/Sellers/Services/Tv/BTVAnalytics';
 
 
 {/* This would be the list of all the services on that platform */}
@@ -117,9 +118,9 @@ function App() {
       <Route path='password/reset' element={<PasswordReset/>}/>
       <Route path="/two-factor" element={<TwoFactor />} />
       <Route path='dashboard' element={
-         <ProtectedRoute>
+        //  <ProtectedRoute>
            <DashboardLayout/>
-         </ProtectedRoute>
+        //  </ProtectedRoute>
       }
         >
         <Route index element={
@@ -159,7 +160,7 @@ function App() {
              <Route path='tv' element={<Rootlayout/>}>
                 <Route index element={<AdminTVRequests/>}/>
                 <Route path='settings' element={<BloomzonTVSettings/>}/>
-                <Route path='analytics' element={<AdminReelsDashboard/>}/>
+                <Route path='analytics' element={<BloomzonTVAnalytics/>}/>
                 <Route path='orders' element={<ReelsOrdersPage/>}/>
                 <Route path=':reels' element={<ReelUserDetailsPage/>}/>
              </Route>
@@ -188,11 +189,11 @@ function App() {
                 <Route path='analytics' element={<RealEstateAnalytics/>}/>
                 <Route path=':type/:realestate' element={<RealestateAdminDetailView/>}/>
              </Route>
-             <Route path='tv' element={<Rootlayout/>}>
+             {/* <Route path='tv' element={<Rootlayout/>}>
                 <Route index element={<BloomzonTVAdminDashboard/>}/>
-                <Route path='analytics' element={<RealEstateAnalytics/>}/>
-                <Route path=':type/:realestate' element={<RealestateAdminDetailView/>}/>
-             </Route>
+                <Route path='analytics' element={<BloomzonTVAnalytics/>}/>
+                <Route path='settings' element={<BloomzonTVSettings/>}/>
+             </Route> */}
              <Route path='groceries-beverages' element={<Rootlayout/>}>
               <Route index element={<Groceries/>}/>
               <Route path='analytics' element={<GroceriesBloomzonRevenueDashboard/>}/>

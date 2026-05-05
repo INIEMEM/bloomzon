@@ -134,7 +134,7 @@ const ReviewSessionModal = ({ open, onClose, record, onUpdated }) => {
           duration: String(payload.duration || ""),
         },
       };
-      await axios.put(`${baseUrl23}admin/update-airing-session/${record.airId}`, body);
+      await axios.put(`${baseUrl23}admin/airing-session/${record.airId}`, body);
       message.success("Session updated");
       onUpdated?.();
       onClose();
