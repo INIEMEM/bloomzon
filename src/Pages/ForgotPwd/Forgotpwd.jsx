@@ -1,7 +1,7 @@
 import React from 'react'
 import { useState, useContext } from 'react';
 import Background from '../../Components/Background/Background';
-import { MainContext } from '../../Context/Context';
+import { MainContext } from '../../Context/MainContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Typography, message } from 'antd';
 import Axios from 'axios';

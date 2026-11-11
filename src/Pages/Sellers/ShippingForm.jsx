@@ -3,7 +3,7 @@ import { Button, Form, Input, Select, Spin, message } from "antd";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { MainContext } from "../../Context/Context";
+import { MainContext } from "../../Context/MainContext";
 import { SHIPPING_BASE_URL, getAuthHeaders } from "../../api/config";
 
 const ShippingForm = () => {

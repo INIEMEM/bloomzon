@@ -1,18 +1,18 @@
-import { useState, createContext } from "react";
+/* eslint-disable react/prop-types */
+import { useState, useCallback } from "react";
 import {
   API_BASE_URL,
   BLOOMZONLIVE_BASE_URL,
   readStoredToken,
   sessionTokenKey,
 } from "../api/config";
-
-export const MainContext = createContext();
+import { MainContext } from "./MainContext";
 
 const Context = (props) => {
   const [user, setUser] = useState({});
   const [token, setToken] = useState(readStoredToken());
 
-  const saveToken = (nextToken) => {
+  const saveToken = useCallback((nextToken) => {
     if (nextToken) {
       sessionStorage.setItem(sessionTokenKey, JSON.stringify(nextToken));
     } else {
@@ -20,9 +20,9 @@ const Context = (props) => {
     }
 
     setToken(nextToken || null);
-  };
+  }, []);
 
-  const clearToken = () => saveToken(null);
+  const clearToken = useCallback(() => saveToken(null), [saveToken]);
 
   const contextValue = {
     setToken: saveToken,

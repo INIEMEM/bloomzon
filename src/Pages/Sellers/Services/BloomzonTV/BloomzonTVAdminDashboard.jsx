@@ -1,47 +1,41 @@
-import React from "react";
-import { Tabs } from "antd";
-import VendorApplications from "./VendorApplications";
-import ShowManagement from "./ShowManagement";
-import ProductsOnTV from "./ProductsOnTV";
-import ViewerEngagement from "./ViewerEngagement";
-import OrdersManagement from "./OrdersManagement";
-import ReportsAnalytics from "./ReportsAnalytics";
-import ContentModeration from "./ContentModeration";
-import InfluencerManagement from "./InfluencerManagement";
+import { Button, Space } from "antd";
+import { useNavigate } from "react-router-dom";
 
-const { TabPane } = Tabs;
+import UnsupportedFeature from "../../../../Components/UnsupportedFeature/UnsupportedFeature";
 
 const BloomzonTVAdminDashboard = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-semibold mb-4">Bloomzon TV Admin</h1>
-      <Tabs defaultActiveKey="1" tabPosition="top" size="large">
-        <TabPane tab="Vendor Applications" key="1">
-          <VendorApplications />
-        </TabPane>
-        <TabPane tab="Show Management" key="2">
-          <ShowManagement />
-        </TabPane>
-        <TabPane tab="Products on TV" key="3">
-          <ProductsOnTV />
-        </TabPane>
-        <TabPane tab="Viewer Engagement" key="4">
-          <ViewerEngagement />
-        </TabPane>
-        <TabPane tab="Orders" key="5">
-          <OrdersManagement />
-        </TabPane>
-        <TabPane tab="Reports & Analytics" key="6">
-          <ReportsAnalytics />
-        </TabPane>
-        <TabPane tab="Content Moderation" key="7">
-          <ContentModeration />
-        </TabPane>
-        <TabPane tab="Influencers" key="8">
-          <InfluencerManagement />
-        </TabPane>
-      </Tabs>
-    </div>
+    <UnsupportedFeature
+      title="Legacy Bloomzon TV dashboard retired"
+      description="The old Bloomzon TV dashboard tabs were powered by mock vendor, show, product, moderation, and influencer data. Live TV administration now runs through the airing-session moderation and settings endpoints."
+      note={
+        <Space wrap>
+          <Button
+            type="primary"
+            onClick={() => navigate("/dashboard/sellers/services/tv")}
+          >
+            Open TV moderation
+          </Button>
+          <Button
+            onClick={() => navigate("/dashboard/sellers/services/tv/settings")}
+          >
+            Open TV settings
+          </Button>
+          <Button
+            onClick={() => navigate("/dashboard/sellers/services/bloomzon-tv/analytics")}
+          >
+            View TV analytics
+          </Button>
+          <Button
+            onClick={() => navigate("/dashboard/admin-system/content")}
+          >
+            Open content workspace
+          </Button>
+        </Space>
+      }
+    />
   );
 };
 

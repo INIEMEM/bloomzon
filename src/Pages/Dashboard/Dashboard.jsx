@@ -1,442 +1,364 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
-import Axios from "axios";
-import { Alert, Button, Empty, Spin } from "antd";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bar } from "react-chartjs-2";
-import "chart.js/auto";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import UserMatrxs from "../../Components/UserMatrixs/UserMatrxs";
-import BigGraphs from "../../Components/BigGraphs/BigGraphs";
-import { MainContext } from "../../Context/Context";
-import { ADMIN_BASE_URL, getAuthHeaders } from "../../api/config";
+import { Alert, Button, Empty, Spin, Table, Tag } from "antd";
+import { ReloadOutlined } from "@ant-design/icons";
+
+import { MainContext } from "../../Context/MainContext";
+import {
+  defaultAdminOverview,
+  defaultAdminProfitability,
+  defaultAdminSalesReport,
+  fetchAdminOverview,
+  fetchAdminProfitability,
+  fetchAdminSalesReport,
+} from "../../api/admin";
+import "../Admin/adminWorkspace.css";
 import "./dashboard.css";
 import {
-  AutomobileRepairs,
-  BloomzonHealthCare,
-  BloomzonLive,
-  BloomzonProductIcon,
-  BloomzonReel,
-  BloomzonTv,
-  ElliteIcon,
-  FoodRestaurant,
-  GroceriesIcon,
-  LogisticsIcon,
-  ManufacturerIcon,
-  RealEstate,
-  TrueView,
-  UsedItem,
-} from "../../Icons/icon";
+  AdminWorkspaceShell,
+  DataGapNotice,
+  SummaryCard,
+  formatCurrency,
+  formatDateTime,
+  formatNumber,
+  statusTagColor,
+} from "../BloomzonAdmin/shared";
+import { hasAdminPermission } from "../../api/getUser";
 
-const defaultOverview = {
-  summary: {
-    users: { total: 0, new: 0, active: 0, banned: 0, suspended: 0 },
-    sellers: { total: 0, new: 0, active: 0, banned: 0, suspended: 0 },
-    buyers: { total: 0, new: 0, active: 0, banned: 0 },
-    products: { total: 0, active: 0, inactive: 0 },
-    orders: { total: 0, pending: 0, processing: 0, completed: 0 },
+const renderStatusTag = (value) => (
+  <Tag color={statusTagColor[String(value || "").toLowerCase()] || "default"}>
+    {String(value || "unknown").replace(/_/g, " ").toUpperCase()}
+  </Tag>
+);
+
+const quickLinks = [
+  {
+    title: "Access & User Management",
+    description: "Admins, permissions, audit trails, and role coverage.",
+    path: "/dashboard/admin-system/access",
   },
-  charts: {
-    monthly: {
-      labels: [],
-      users: [],
-      sellers: [],
-      products: [],
-      orders: [],
-    },
+  {
+    title: "Orders, Payments & Refunds",
+    description: "Order flow, withdrawal reviews, and refund watchlists.",
+    path: "/dashboard/admin-system/orders",
   },
-  productsBySubdomain: [],
-};
-
-const normalizeServiceKey = (value) =>
-  String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-
-const serviceIcons = {
-  retailer: <BloomzonProductIcon />,
-  "bloomzon product": <BloomzonProductIcon />,
-  "bloomzon products": <BloomzonProductIcon />,
-  "groceries beverages": <GroceriesIcon />,
-  "groceries beverages services": <GroceriesIcon />,
-  groceries: <GroceriesIcon />,
-  "foods restaurants": <FoodRestaurant />,
-  food: <FoodRestaurant />,
-  restaurant: <FoodRestaurant />,
-  "bloomzon healthcare": <BloomzonHealthCare />,
-  healthcare: <BloomzonHealthCare />,
-  "used item": <UsedItem />,
-  "used items": <UsedItem />,
-  automobile: <AutomobileRepairs />,
-  "automobile parts": <AutomobileRepairs />,
-  "real estate": <RealEstate />,
-  realestate: <RealEstate />,
-  reels: <BloomzonReel />,
-  "bloomzon reels": <BloomzonReel />,
-  "bloomzon reel": <BloomzonReel />,
-  tv: <BloomzonTv />,
-  "bloomzon tv": <BloomzonTv />,
-  live: <BloomzonLive />,
-  "bloomzon live": <BloomzonLive />,
-  manufacturer: <ManufacturerIcon />,
-  manufacturers: <ManufacturerIcon />,
-  trueview: <TrueView />,
-  "logistics services": <LogisticsIcon />,
-  logistics: <LogisticsIcon />,
-  "bloomzon elite": <ElliteIcon />,
-  elite: <ElliteIcon />,
-};
-
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      position: "bottom",
-    },
+  {
+    title: "Seller & Buyer Management",
+    description: "Account actions, KYC queues, and seller verification.",
+    path: "/dashboard/admin-system/users",
   },
-  scales: {
-    y: {
-      beginAtZero: true,
-      ticks: {
-        precision: 0,
-      },
-    },
+  {
+    title: "Content & Catalog",
+    description: "Product moderation, reviews, and domain/category visibility.",
+    path: "/dashboard/admin-system/content",
   },
-};
-
-const sliderSettings = {
-  dots: true,
-  infinite: true,
-  autoplay: true,
-  autoplaySpeed: 5000,
-  speed: 1000,
-  slidesToShow: 1,
-  slidesToScroll: 1,
-  arrows: false,
-  pauseOnHover: true,
-};
+  {
+    title: "Messaging, Support & Notifications",
+    description: "Unified inbox coverage and operational alert surfaces.",
+    path: "/dashboard/admin-system/support",
+  },
+  {
+    title: "Finance & Revenue",
+    description: "GMV, platform revenue estimate, settlements, and payout visibility.",
+    path: "/dashboard/admin-system/finance",
+  },
+];
 
 const Dashboard = () => {
-  const { token } = useContext(MainContext);
+  const { token, user } = useContext(MainContext);
   const navigate = useNavigate();
-  const [overview, setOverview] = useState(defaultOverview);
+  const [overview, setOverview] = useState(defaultAdminOverview);
+  const [salesReport, setSalesReport] = useState(defaultAdminSalesReport);
+  const [profitability, setProfitability] = useState(defaultAdminProfitability);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchOverview = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        const response = await Axios.get(`${ADMIN_BASE_URL}/dashboard/overview`, {
-          headers: getAuthHeaders(token),
-        });
-
-        setOverview(response?.data?.data || defaultOverview);
-      } catch (fetchError) {
-        setError(
-          fetchError?.response?.data?.message ||
-            "Failed to load the dashboard overview.",
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (token) {
-      fetchOverview();
+  const loadOverview = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const [overviewData, salesData, profitabilityData] = await Promise.all([
+        fetchAdminOverview(token),
+        fetchAdminSalesReport(token, { months: 6 }),
+        fetchAdminProfitability(token, { months: 6 }),
+      ]);
+      setOverview(overviewData || defaultAdminOverview);
+      setSalesReport(salesData || defaultAdminSalesReport);
+      setProfitability(profitabilityData || defaultAdminProfitability);
+    } catch (loadError) {
+      setError(
+        loadError?.response?.data?.message ||
+          "Failed to load the Bloomzon admin overview.",
+      );
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    if (token) {
+      loadOverview();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  const carouselItems = useMemo(
+  const latestMonthlySales =
+    salesReport.monthly?.[salesReport.monthly.length - 1] || null;
+  const latestProfitability =
+    profitability.monthly?.[profitability.monthly.length - 1] || null;
+
+  const alertCards = useMemo(
     () => [
       {
-        title: "All Users",
-        subtitle: "Live metrics for every authenticated account in the system.",
-        stats: [
-          { matrix: overview.summary.users.total, title: "All users" },
-          { matrix: overview.summary.users.new, title: "New users" },
-          { matrix: overview.summary.users.active, title: "Active users" },
-          { matrix: overview.summary.users.banned, title: "Banned users" },
-          {
-            matrix: overview.summary.users.suspended,
-            title: "Suspended users",
-          },
-        ],
-        class: "dashboard-header-image1",
+        title: "Flagged transactions",
+        value: formatNumber(overview.summary.alerts?.flaggedTransactions),
+        helper: "Suspicious finance, payment, and support risk signals from the backend risk feed.",
       },
       {
-        title: "All Sellers",
-        subtitle: "Vendor-backed seller accounts across Bloomzon services.",
-        stats: [
-          { matrix: overview.summary.sellers.total, title: "All sellers" },
-          { matrix: overview.summary.sellers.new, title: "New sellers" },
-          { matrix: overview.summary.sellers.active, title: "Active sellers" },
-          { matrix: overview.summary.sellers.banned, title: "Banned sellers" },
-          {
-            matrix: overview.summary.sellers.suspended,
-            title: "Suspended sellers",
-          },
-        ],
-        class: "dashboard-header-image2",
+        title: "SLA breaches",
+        value: formatNumber(overview.summary.alerts?.slaBreaches),
+        helper: "Orders that are beyond delivery SLA based on tracked fulfillment dates.",
       },
       {
-        title: "All Buyers",
-        subtitle: "Customer accounts that are not attached to a seller profile.",
-        stats: [
-          { matrix: overview.summary.buyers.total, title: "All buyers" },
-          { matrix: overview.summary.buyers.new, title: "New buyers" },
-          { matrix: overview.summary.buyers.active, title: "Active buyers" },
-          { matrix: overview.summary.buyers.banned, title: "Banned buyers" },
-          { matrix: overview.summary.orders.total, title: "Total orders" },
-        ],
-        class: "dashboard-header-image3",
+        title: "Pending KYC",
+        value: formatNumber(overview.summary.alerts?.pendingKyc),
+        helper: "Seller/store verification queue awaiting admin review.",
+      },
+      {
+        title: "Moderation queue",
+        value: formatNumber(overview.summary.alerts?.moderationQueueCount),
+        helper: "Pending review and moderation workload.",
       },
     ],
     [overview],
   );
 
-  const userGrowthData = useMemo(
-    () => ({
-      labels: overview.charts.monthly.labels,
-      datasets: [
-        {
-          label: "Users",
-          data: overview.charts.monthly.users,
-          backgroundColor: "#41CCC7",
-          borderRadius: 6,
-        },
-        {
-          label: "Sellers",
-          data: overview.charts.monthly.sellers,
-          backgroundColor: "#F67F00",
-          borderRadius: 6,
-        },
-      ],
-    }),
-    [overview],
-  );
-
-  const commerceGrowthData = useMemo(
-    () => ({
-      labels: overview.charts.monthly.labels,
-      datasets: [
-        {
-          label: "Products",
-          data: overview.charts.monthly.products,
-          backgroundColor: "#2F6FED",
-          borderRadius: 6,
-        },
-        {
-          label: "Orders",
-          data: overview.charts.monthly.orders,
-          backgroundColor: "#18A957",
-          borderRadius: 6,
-        },
-      ],
-    }),
-    [overview],
-  );
-
-  const topServices = useMemo(
+  const visibleQuickLinks = useMemo(
     () =>
-      [...overview.productsBySubdomain]
-        .sort((left, right) => right.totalProducts - left.totalProducts)
-        .slice(0, 6),
-    [overview],
-  );
-
-  const serviceBreakdownData = useMemo(
-    () => ({
-      labels: topServices.map((item) => item.label || item.name),
-      datasets: [
-        {
-          label: "Products",
-          data: topServices.map((item) => item.totalProducts),
-          backgroundColor: [
-            "#F67F00",
-            "#41CCC7",
-            "#2F6FED",
-            "#18A957",
-            "#A855F7",
-            "#EF4444",
-          ],
-          borderRadius: 6,
-        },
-      ],
-    }),
-    [topServices],
-  );
-
-  const serviceCards = useMemo(
-    () =>
-      [...overview.productsBySubdomain]
-        .sort((left, right) => right.totalProducts - left.totalProducts)
-        .map((service) => {
-          const key = normalizeServiceKey(service.label || service.name);
-          return {
-            ...service,
-            icon: serviceIcons[key] || <BloomzonProductIcon />,
-          };
-        }),
-    [overview],
+      quickLinks.filter((link) => {
+        if (link.path.endsWith("/access")) {
+          return hasAdminPermission(user, ["admins:view", "admins:manage"]);
+        }
+        if (link.path.endsWith("/orders")) {
+          return hasAdminPermission(user, ["orders:view", "finance:view"]);
+        }
+        if (link.path.endsWith("/users")) {
+          return hasAdminPermission(user, ["users:view", "subscriptions:view"]);
+        }
+        if (link.path.endsWith("/content")) {
+          return hasAdminPermission(user, ["products:view", "domains:view"]);
+        }
+        if (link.path.endsWith("/support")) {
+          return hasAdminPermission(user, ["orders:view", "users:view"]);
+        }
+        if (link.path.endsWith("/finance")) {
+          return hasAdminPermission(user, ["finance:view", "reports:view"]);
+        }
+        return true;
+      }),
+    [user],
   );
 
   return (
-    <div style={{ padding: 20 }}>
-      <div className="flex flex-justify-between flex-align">
-        <h1 style={{ fontSize: "2rem", color: "#323232" }}>Dashboard</h1>
-        <Button
-          style={{
-            background: "var(--primary-color)",
-            color: "white",
-            border: "none",
-          }}
-          onClick={() => navigate("/dashboard/others/admins")}
-        >
-          Admin Directory
-        </Button>
-      </div>
-
+    <AdminWorkspaceShell
+      eyebrow="Overview"
+      title="Bloomzon Admin System"
+      subtitle="The operating layer for Bloomzon marketplace administration across users, sellers, orders, support, content, and finance."
+      actions={
+        <>
+          <Button onClick={() => navigate("/dashboard/admin-system/access")}>
+            Open admin system
+          </Button>
+          <Button icon={<ReloadOutlined />} onClick={loadOverview}>
+            Refresh
+          </Button>
+        </>
+      }
+    >
       {error ? (
-        <Alert
-          style={{ marginTop: 16 }}
-          type="warning"
-          showIcon
-          message="Dashboard data could not be loaded"
-          description={error}
-        />
+        <Alert style={{ marginBottom: 18 }} type="error" showIcon message={error} />
       ) : null}
-
+      <DataGapNotice
+        title="Metric notes"
+        items={[
+          "Monthly GMV is mapped from the latest sales-report month returned by the paired backend.",
+          "Revenue now includes tracked subscription fees plus the current backend marketplace retained-value estimate.",
+          "Active users reflect accounts updated in the last 30 days, which is the closest activity signal exposed by the current user model.",
+        ]}
+      />
       {loading ? (
-        <div
-          className="flex flex-center"
-          style={{ minHeight: 300, width: "100%" }}
-        >
+        <div className="flex flex-center" style={{ minHeight: 360 }}>
           <Spin size="large" />
         </div>
       ) : (
-        <>
-          <Slider {...sliderSettings}>
-            {carouselItems.map((item, index) => (
-              <div key={index} className={`dashboard-header-image ${item.class}`}>
-                <div className="flex" style={{ justifyContent: "end" }}>
-                  <div className="dashboard-header-dimmer">
-                    <p className="dashboard-header-dimmer-title ">{item.title}</p>
-                    <p className="dashboard-header-dimmer-sub-title ">
-                      {item.subtitle}
-                    </p>
-                    <div
-                      className="flex"
-                      style={{
-                        gap: 20,
-                        position: "absolute",
-                        bottom: 20,
-                        left: 20,
-                        right: 20,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      {item.stats.map((stat, statIndex) => (
-                        <UserMatrxs
-                          key={statIndex}
-                          matrix={stat.matrix}
-                          title={stat.title}
-                        />
-                      ))}
-                    </div>
+        <div className="dashboard-stack">
+          <div className="admin-kpi-grid">
+            <SummaryCard
+              label="Monthly GMV"
+              value={formatCurrency(latestMonthlySales?.totalRevenue || salesReport.summary.totalRevenue)}
+              helper="Latest monthly sales volume across products and services."
+            />
+            <SummaryCard
+              label="Revenue"
+              value={formatCurrency(latestProfitability?.recognizedPlatformRevenue || profitability.summary.recognizedPlatformRevenue || profitability.summary.estimatedPlatformSpread)}
+              helper={`Subscriptions ${formatCurrency(overview.summary.finance.subscriptionRevenue || profitability.summary.subscriptionRevenue)} plus marketplace retained-value estimate.`}
+            />
+            <SummaryCard
+              label="Orders"
+              value={formatNumber(overview.summary.orders.total)}
+              helper={`${formatNumber(overview.summary.orders.completed)} completed, ${formatNumber(overview.summary.orders.pending)} pending`}
+            />
+            <SummaryCard
+              label="Active Users"
+              value={formatNumber(overview.summary.users.activeLast30Days || overview.summary.users.active)}
+              helper="Accounts active within the last 30 days."
+            />
+          </div>
+
+          <section className="admin-panel admin-panel--soft">
+            <div className="admin-panel__body">
+              <div className="admin-panel__header">
+                <div>
+                  <h2 className="admin-panel__title">Alerts</h2>
+                  <div className="admin-panel__subtitle">
+                    Flagged queues and operational pressure points surfaced from currently available backend signals.
                   </div>
                 </div>
               </div>
-            ))}
-          </Slider>
+              <div className="admin-kpi-grid">
+                {alertCards.map((card) => (
+                  <SummaryCard
+                    key={card.title}
+                    label={card.title}
+                    value={card.value}
+                    helper={card.helper}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
 
-          <div className="flex flex-justify-between" style={{ gap: 20, marginTop: 20 }}>
-            <UserMatrxs
-              matrix={overview.summary.sellers.total}
-              title="All Sellers"
-              icon={<LogisticsIcon />}
-              border={true}
-              link="/dashboard/sellers/all"
-            />
-            <UserMatrxs
-              matrix={overview.summary.products.total}
-              title="All Products"
-              icon={<BloomzonProductIcon />}
-              border={true}
-              link="/dashboard/products"
-            />
-            <UserMatrxs
-              matrix={overview.summary.orders.total}
-              title="All Orders"
-              icon={<BloomzonLive />}
-              border={true}
-            />
-          </div>
-
-          <div className="flex" style={{ gap: 20, marginTop: 20, flexWrap: "wrap" }}>
-            <BigGraphs
-              title="User Growth"
-              content={
-                <div style={{ height: 280 }}>
-                  <Bar data={userGrowthData} options={chartOptions} />
-                </div>
-              }
-              subTitle={`${overview.summary.users.new} new users and ${overview.summary.sellers.new} new sellers in the last 30 days`}
-              links="/dashboard/user/all"
-            />
-            <BigGraphs
-              title="Commerce Flow"
-              content={
-                <div style={{ height: 280 }}>
-                  <Bar data={commerceGrowthData} options={chartOptions} />
-                </div>
-              }
-              subTitle={`${overview.summary.products.active} active products and ${overview.summary.orders.pending} pending orders right now`}
-              links="/dashboard/products"
-            />
-            <BigGraphs
-              title="Top Product Services"
-              content={
-                <div style={{ height: 280 }}>
-                  {topServices.length ? (
-                    <Bar data={serviceBreakdownData} options={chartOptions} />
-                  ) : (
-                    <Empty description="No product data yet" />
-                  )}
-                </div>
-              }
-              subTitle="Products grouped by live subdomain counts"
-              links="/dashboard/products"
-            />
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: 20,
-              marginTop: 20,
-            }}
-          >
-            {serviceCards.map((service) => (
-              <UserMatrxs
-                key={service.id}
-                matrix={service.totalProducts}
-                title={service.label || service.name}
-                icon={service.icon}
-                border={true}
-                link={`/dashboard/products?subdomainId=${service.id}`}
-              />
+          <div className="dashboard-link-grid">
+            {visibleQuickLinks.map((link) => (
+              <button
+                className="dashboard-link-card"
+                key={link.path}
+                type="button"
+                onClick={() => navigate(link.path)}
+              >
+                <span className="dashboard-link-card__title">{link.title}</span>
+                <span className="dashboard-link-card__copy">{link.description}</span>
+              </button>
             ))}
           </div>
-        </>
+
+          <div className="admin-section-grid admin-section-grid--2">
+            <section className="admin-panel">
+              <div className="admin-panel__body">
+                <div className="admin-panel__header">
+                  <div>
+                    <h2 className="admin-panel__title">Recent Orders</h2>
+                    <div className="admin-panel__subtitle">
+                      Latest marketplace orders available from the overview feed.
+                    </div>
+                  </div>
+                </div>
+                <Table
+                  rowKey="id"
+                  pagination={false}
+                  dataSource={overview.recent.orders}
+                  locale={{ emptyText: <Empty description="No recent orders" /> }}
+                  columns={[
+                    {
+                      title: "Order",
+                      key: "order",
+                      render: (_, record) => (
+                        <div>
+                          <div style={{ fontWeight: 600 }}>{record.orderNumber}</div>
+                          <div style={{ color: "#6b7280", fontSize: 12 }}>
+                            {record.customer?.name || "Unknown buyer"}
+                          </div>
+                        </div>
+                      ),
+                    },
+                    {
+                      title: "Total",
+                      key: "total",
+                      render: (_, record) =>
+                        formatCurrency(record.totalAmount, record.currencyCode || "USD"),
+                    },
+                    {
+                      title: "Status",
+                      key: "status",
+                      render: (_, record) => renderStatusTag(record.orderStatus),
+                    },
+                    {
+                      title: "Created",
+                      key: "createdAt",
+                      render: (_, record) => formatDateTime(record.createdAt),
+                    },
+                  ]}
+                />
+              </div>
+            </section>
+
+            <section className="admin-panel admin-panel--soft">
+              <div className="admin-panel__body">
+                <div className="admin-panel__header">
+                  <div>
+                    <h2 className="admin-panel__title">Service Health</h2>
+                    <div className="admin-panel__subtitle">
+                      Top service categories by product and store footprint.
+                    </div>
+                  </div>
+                </div>
+                <Table
+                  rowKey="id"
+                  pagination={false}
+                  dataSource={[...(overview.serviceHealth || [])]
+                    .sort(
+                      (left, right) =>
+                        right.totalStores + right.totalProducts - (left.totalStores + left.totalProducts),
+                    )
+                    .slice(0, 8)}
+                  locale={{ emptyText: <Empty description="No service health data" /> }}
+                  columns={[
+                    {
+                      title: "Service",
+                      key: "label",
+                      render: (_, record) => (
+                        <div>
+                          <div style={{ fontWeight: 600 }}>{record.label}</div>
+                          <div style={{ color: "#6b7280", fontSize: 12 }}>
+                            {record.domainLabel || "Unassigned domain"}
+                          </div>
+                        </div>
+                      ),
+                    },
+                    {
+                      title: "Stores",
+                      key: "totalStores",
+                      render: (_, record) => formatNumber(record.totalStores),
+                    },
+                    {
+                      title: "Products",
+                      key: "totalProducts",
+                      render: (_, record) => formatNumber(record.totalProducts),
+                    },
+                    {
+                      title: "Status",
+                      key: "status",
+                      render: (_, record) =>
+                        renderStatusTag(Number(record.status) === 1 ? "active" : "inactive"),
+                    },
+                  ]}
+                />
+              </div>
+            </section>
+          </div>
+        </div>
       )}
-    </div>
+    </AdminWorkspaceShell>
   );
 };
 

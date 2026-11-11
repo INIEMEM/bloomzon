@@ -15,10 +15,10 @@ import {
   Typography,
   message,
 } from "antd";
-import { PlusOutlined, SafetyOutlined } from "@ant-design/icons";
+import { PlusOutlined, SafetyOutlined, SearchOutlined } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { MainContext } from "../../../Context/Context";
+import { MainContext } from "../../../Context/MainContext";
 import { ADMIN_BASE_URL, getAuthHeaders } from "../../../api/config";
 
 const statusOptions = [
@@ -233,6 +233,9 @@ const Admins = () => {
             {record.user?.name || record.email}
           </Typography.Text>
           <div style={{ color: "#6b7280" }}>{record.email}</div>
+          <div style={{ marginTop: 4 }}>
+            Code: <Tag color="blue">{record.admin_code || "N/A"}</Tag>
+          </div>
         </div>
       ),
     },
@@ -328,6 +331,9 @@ const Admins = () => {
             <Space wrap>
               <Link to="/dashboard/others/admins/roles">
                 <Button icon={<SafetyOutlined />}>View Rights Catalog</Button>
+              </Link>
+              <Link to="/dashboard/others/admins/audit-logs">
+                <Button icon={<SearchOutlined />}>System Audit Logs</Button>
               </Link>
               <Button
                 type="primary"

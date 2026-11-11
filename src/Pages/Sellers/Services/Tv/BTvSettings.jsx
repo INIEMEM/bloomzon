@@ -1,10 +1,15 @@
-import React, { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Card, Form, InputNumber, Button, message, Spin } from "antd";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { BLOOMZONLIVE_BASE_URL } from "../../../../api/config";
+import { MainContext } from "../../../../Context/MainContext";
+import {
+  BLOOMZONLIVE_BASE_URL,
+  getAuthHeaders,
+} from "../../../../api/config";
 
 const BloomzonTVSettings = () => {
+  const { token } = useContext(MainContext);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -12,7 +17,11 @@ const BloomzonTVSettings = () => {
   const fetchSettings = async () => {
     try {
       const res = await axios.get(
-        `${BLOOMZONLIVE_BASE_URL}/admin/bloomzon-tv-settings`
+        `${BLOOMZONLIVE_BASE_URL}/admin/bloomzon-tv-settings`,
+        {
+          headers: getAuthHeaders(token),
+          withCredentials: true,
+        },
       );
       const data = res.data;
       form.setFieldsValue({
@@ -20,7 +29,7 @@ const BloomzonTVSettings = () => {
         maxConcurrentSessionsInMinutes: data.maxConcurrentSessionsInMinutes,
         minSessionDurationInMinutes: data.minSessionDurationInMinutes,
       });
-    } catch (error) {
+    } catch {
       message.error("Failed to load settings");
     } finally {
       setInitialLoading(false);
@@ -29,6 +38,7 @@ const BloomzonTVSettings = () => {
 
   useEffect(() => {
     fetchSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onFinish = async (values) => {
@@ -39,10 +49,14 @@ const BloomzonTVSettings = () => {
         {
           id: 1, // always ID = 1 as per API
           ...values,
-        }
+        },
+        {
+          headers: getAuthHeaders(token),
+          withCredentials: true,
+        },
       );
       message.success("Settings updated successfully!");
-    } catch (error) {
+    } catch {
       message.error("Failed to update settings");
     } finally {
       setLoading(false);

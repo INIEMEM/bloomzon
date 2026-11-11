@@ -1,46 +1,139 @@
+/* eslint-disable react/prop-types */
 // components/ProtectedRoute.jsx
+import { Spin } from 'antd';
 import { useContext, useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { MainContext } from '../Context/Context';
-import { getUser } from '../api/getUser';
-import logo from '../Layouts/assets/bloomzon.png';
+import { Navigate, useLocation } from 'react-router-dom';
+import { MainContext } from '../Context/MainContext';
+import {
+  getDefaultAdminPath,
+  getUser,
+  hasAdminAccess,
+  hasAnyAdminPermission,
+  hasAllAdminPermissions,
+} from '../api/getUser';
+import { cookieSessionToken, readStoredToken } from '../api/config';
 
-const ProtectedRoute = ({ children }) => {
-  const { baseUrl, token, setUser, clearToken } = useContext(MainContext);
-  const [auth, setAuth] = useState(null);
-  const [loading, setLoading] = useState(true);
+const ProtectedRoute = ({
+  children,
+  requiredPermissions = [],
+  requireAllPermissions = false,
+  unauthorizedRedirectTo,
+}) => {
+  const { baseUrl, token, user, setUser, setToken, clearToken } =
+    useContext(MainContext);
+  const location = useLocation();
+  const effectiveToken = token || readStoredToken();
+  const hasHydratedUser = Boolean(user && Object.keys(user).length);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(!hasHydratedUser);
+  const hasRequiredPermissions = hasHydratedUser
+    ? (
+        requireAllPermissions
+          ? hasAllAdminPermissions(user, requiredPermissions)
+          : hasAnyAdminPermission(user, requiredPermissions)
+      )
+    : false;
 
   useEffect(() => {
-    const checkAuth = async () => {
-      if (!token) {
-        setAuth(null);
-        setLoading(false);
-        return;
-      }
+    if (hasHydratedUser) {
+      setIsCheckingAuth(false);
+      return;
+    }
 
+    let cancelled = false;
+
+    const syncUser = async () => {
       try {
-        const response = await getUser(baseUrl, token);
-        setAuth(response);
-      } catch (error) {
-        clearToken();
-        setAuth(null);
+        const response = await getUser(baseUrl, effectiveToken);
+        if (!cancelled) {
+          if (!hasAdminAccess(response)) {
+            setUser({});
+            clearToken();
+            return;
+          }
+
+          setUser(response);
+          setToken(effectiveToken || cookieSessionToken);
+        }
+      } catch {
+        if (!cancelled) {
+          setUser({});
+          clearToken();
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setIsCheckingAuth(false);
+        }
       }
     };
 
-    checkAuth();
-  }, [baseUrl, clearToken, token]);
+    syncUser();
 
-  useEffect(() => {
-    if (auth) {
-      setUser(auth);
+    return () => {
+      cancelled = true;
+    };
+  }, [baseUrl, clearToken, effectiveToken, hasHydratedUser, setToken, setUser]);
+
+  if (hasHydratedUser) {
+    if (!hasAdminAccess(user)) {
+      return <Navigate to="/" replace />;
     }
-  }, [auth, setUser]);
 
-  if (loading) return <div className='flex flex-center justify-center items-center h-screen animate-pulse'><img src={logo} className='logo-image' style={{width:120, height:120, objectFit:'contain'}}/></div>;
+    if (requiredPermissions?.length && !hasRequiredPermissions) {
+      const fallbackPath = unauthorizedRedirectTo || getDefaultAdminPath(user);
 
-  return auth ? children : <Navigate to="/" replace />;
+      if (fallbackPath && fallbackPath !== location.pathname) {
+        return <Navigate to={fallbackPath} replace />;
+      }
+
+      return <Navigate to="/" replace />;
+    }
+
+    return children;
+  }
+
+  if (isCheckingAuth) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'grid',
+          placeItems: 'center',
+          background: '#f5f7fb',
+        }}
+      >
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (!effectiveToken) {
+    return <Navigate to="/" replace state={{ from: location }} />;
+  }
+
+  return <Navigate to="/" replace state={{ from: location }} />;
+};
+
+export const RequireAdminPermissions = ({
+  children,
+  permissions,
+  redirectTo,
+  requireAllPermissions = false,
+}) => {
+  const { user } = useContext(MainContext);
+  const fallbackPath = redirectTo || getDefaultAdminPath(user);
+  const isAllowed = requireAllPermissions
+    ? hasAllAdminPermissions(user, permissions, { fallbackToAdmin: false })
+    : hasAnyAdminPermission(user, permissions, { fallbackToAdmin: false });
+
+  if (!isAllowed) {
+    if (fallbackPath) {
+      return <Navigate to={fallbackPath} replace />;
+    }
+
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
 };
 
 export default ProtectedRoute;

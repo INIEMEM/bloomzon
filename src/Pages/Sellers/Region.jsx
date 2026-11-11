@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { Button, Form, Input, Modal, Space, Table, notification } from "antd";
 import { motion } from "framer-motion";
 import Axios from "axios";
-import { MainContext } from "../../Context/Context";
+import { MainContext } from "../../Context/MainContext";
 import { COUNTRY_BASE_URL, REGION_BASE_URL, getAuthHeaders } from "../../api/config";
 import "./seller.css";
 

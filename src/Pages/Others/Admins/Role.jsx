@@ -11,7 +11,7 @@ import {
   message,
 } from "antd";
 import { motion } from "framer-motion";
-import { MainContext } from "../../../Context/Context";
+import { MainContext } from "../../../Context/MainContext";
 import { ADMIN_BASE_URL, getAuthHeaders } from "../../../api/config";
 
 const prettifyKey = (value = "") =>

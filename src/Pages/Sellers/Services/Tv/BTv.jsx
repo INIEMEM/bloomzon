@@ -26,8 +26,11 @@ import {
 import { motion } from "framer-motion";
 import axios from "axios";
 import dayjs from "dayjs";
-import { MainContext } from "../../../../Context/Context";
-import { BLOOMZONLIVE_BASE_URL } from "../../../../api/config";
+import { MainContext } from "../../../../Context/MainContext";
+import {
+  BLOOMZONLIVE_BASE_URL,
+  getAuthHeaders,
+} from "../../../../api/config";
 const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
 
@@ -36,6 +39,12 @@ const { RangePicker } = DatePicker;
  */
 const api = axios.create({
   baseURL: BLOOMZONLIVE_BASE_URL,
+  withCredentials: true,
+});
+
+const buildRequestConfig = (token) => ({
+  headers: getAuthHeaders(token),
+  withCredentials: true,
 });
 
 /**
@@ -82,7 +91,7 @@ const StatusTag = ({ status }) => {
 const ReviewSessionModal = ({ open, onClose, record, onUpdated }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
-  const { baseUrl23 } = useContext(MainContext);
+  const { baseUrl23, token } = useContext(MainContext);
   useEffect(() => {
     if (record) {
       form.setFieldsValue({
@@ -135,7 +144,11 @@ const ReviewSessionModal = ({ open, onClose, record, onUpdated }) => {
           duration: String(payload.duration || ""),
         },
       };
-      await axios.put(`${baseUrl23}admin/update-airing-session/${record.airId}`, body);
+      await axios.put(
+        `${baseUrl23}admin/update-airing-session/${record.airId}`,
+        body,
+        buildRequestConfig(token),
+      );
       message.success("Session updated");
       onUpdated?.();
       onClose();
@@ -277,12 +290,15 @@ const ReviewSessionModal = ({ open, onClose, record, onUpdated }) => {
 const CommentsDrawer = ({ open, onClose, airId }) => {
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
-  const { baseUrl23 } = useContext(MainContext);
+  const { baseUrl23, token } = useContext(MainContext);
   const load = async () => {
     if (!airId) return;
     setLoading(true);
     try {
-      const { data } = await axios.get(`${baseUrl23}admin/airing-session/${airId}/comments`);
+      const { data } = await axios.get(
+        `${baseUrl23}admin/airing-session/${airId}/comments`,
+        buildRequestConfig(token),
+      );
       setRows(Array.isArray(data) ? data : data?.data || []);
     } catch (e) {
       message.error("Failed to load comments");
@@ -298,9 +314,13 @@ const CommentsDrawer = ({ open, onClose, airId }) => {
 
   const toggleVisibility = async (commentId, checked) => {
     try {
-      await api.put(`/admin/airing-session/${airId}/comments/${commentId}/visibility`, {
-        visible: checked,
-      });
+      await api.put(
+        `/admin/airing-session/${airId}/comments/${commentId}/visibility`,
+        {
+          visible: checked,
+        },
+        buildRequestConfig(token),
+      );
       message.success("Visibility updated");
       load();
     } catch (e) {
@@ -366,6 +386,7 @@ const CommentsDrawer = ({ open, onClose, airId }) => {
  * Bloomzon TV CRUD
  */
 const BloomzonTVCrud = () => {
+  const { token } = useContext(MainContext);
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
@@ -374,7 +395,10 @@ const BloomzonTVCrud = () => {
   const load = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get(`/admin/bloomzon-airing-video`);
+      const { data } = await api.get(
+        `/admin/bloomzon-airing-video`,
+        buildRequestConfig(token),
+      );
       setRows(data?.data || []);
     } catch (e) {
       message.error("Failed to fetch Bloomzon TV videos");
@@ -397,7 +421,11 @@ const BloomzonTVCrud = () => {
           views: Number(values.views || 0),
         },
       };
-      await api.post(`/admin/bloomzon-airing-video`, payload);
+      await api.post(
+        `/admin/bloomzon-airing-video`,
+        payload,
+        buildRequestConfig(token),
+      );
       message.success("Video created");
       setOpen(false);
       form.resetFields();
@@ -415,7 +443,11 @@ const BloomzonTVCrud = () => {
         videoUrl: values.videoUrl,
         views: Number(values.views || 0),
       };
-      await api.put(`/admin/bloomzon-airing-video/${id}`, payload);
+      await api.put(
+        `/admin/bloomzon-airing-video/${id}`,
+        payload,
+        buildRequestConfig(token),
+      );
       message.success("Video updated");
       load();
     } catch (e) {
@@ -425,7 +457,10 @@ const BloomzonTVCrud = () => {
 
   const removeVideo = async (id) => {
     try {
-      await api.delete(`/admin/bloomzon-airing-video/${id}`);
+      await api.delete(
+        `/admin/bloomzon-airing-video/${id}`,
+        buildRequestConfig(token),
+      );
       message.success("Video deleted");
       load();
     } catch (e) {
@@ -571,6 +606,7 @@ const BloomzonTVCrud = () => {
  * MAIN DASHBOARD
  */
 export default function BloomzonTVDashboard() {
+  const { token } = useContext(MainContext);
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState({ pending: [], current: [], future: [], past: [] });
   const [selected, setSelected] = useState(null);
@@ -584,7 +620,7 @@ export default function BloomzonTVDashboard() {
   };
   const safeFetch = async (url) => {
     try {
-      const res = await axios.get(url);
+      const res = await axios.get(url, buildRequestConfig(token));
       return res.data.data || [];
     } catch (err) {
       if (err.response && err.response.status === 404) {

@@ -1,4 +1,5 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+/* eslint-disable react/prop-types */
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -15,16 +16,269 @@ import {
   message,
 } from "antd";
 import { motion } from "framer-motion";
-import axios from "axios";
-import { MainContext } from "../../Context/Context";
-import { ADMIN_BASE_URL, getAuthHeaders } from "../../api/config";
+import { MainContext } from "../../Context/MainContext";
+import * as AdminAPI from "../../api/admin";
+import { PlusOutlined, EditOutlined, DeleteOutlined, PartitionOutlined } from "@ant-design/icons";
 
 const statusOptions = [
   { value: 1, label: "Active" },
   { value: 0, label: "Inactive" },
 ];
 
-const BusinessTypeManagement = () => {
+const CatalogHierarchyManager = ({ subdomain }) => {
+  const { token } = useContext(MainContext);
+  const [loading, setLoading] = useState(false);
+  const [hierarchy, setHierarchy] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("create"); // create, edit
+  const [modalLevel, setModalLevel] = useState(1); // 1, 2, 3
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [parentId, setParentId] = useState(null);
+  const [form] = Form.useForm();
+
+  const fetchHierarchy = async () => {
+    try {
+      setLoading(true);
+      const res = await AdminAPI.fetchSubdomainCategoryHierarchy(
+        token,
+        subdomain.id,
+      );
+      if (res.success) {
+        setHierarchy(res.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch hierarchy:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHierarchy();
+  }, [subdomain.id]);
+
+  const openModal = (level, mode, item = null, pid = null) => {
+    setModalLevel(level);
+    setModalMode(mode);
+    setSelectedItem(item);
+    setParentId(pid);
+    form.resetFields();
+
+    if (mode === "edit" && item) {
+      form.setFieldsValue({
+        name: item.name,
+        label: item.label,
+        description: item.description,
+        status: item.status,
+      });
+    } else {
+      form.setFieldsValue({
+        status: 1,
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      const values = await form.validateFields();
+      let res;
+
+      if (modalLevel === 1) {
+        if (modalMode === "edit") {
+          res = await AdminAPI.updateAdminMainCategory(
+            token,
+            selectedItem.id,
+            values,
+          );
+        } else {
+          // If no hierarchy exists, we might need to create the MainCategory with the expected name
+          const payload = {
+            ...values,
+            name: values.name || `_${subdomain.name}`,
+          };
+          res = await AdminAPI.createAdminMainCategory(token, payload);
+        }
+      } else if (modalLevel === 2) {
+        if (modalMode === "edit") {
+          res = await AdminAPI.updateAdminCategory(
+            token,
+            selectedItem.id,
+            values,
+          );
+        } else {
+          res = await AdminAPI.createAdminCategory(token, {
+            ...values,
+            maincategory_id: parentId,
+          });
+        }
+      } else if (modalLevel === 3) {
+        if (modalMode === "edit") {
+          res = await AdminAPI.updateAdminSubcategory(
+            token,
+            selectedItem.id,
+            values,
+          );
+        } else {
+          res = await AdminAPI.createAdminSubcategory(token, {
+            ...values,
+            category_id: parentId,
+          });
+        }
+      }
+
+      if (res?.success) {
+        message.success("Operation successful");
+        setIsModalOpen(false);
+        fetchHierarchy();
+      } else {
+        message.error(res?.message || "Operation failed");
+      }
+    } catch (error) {
+      console.error("Save error:", error);
+    }
+  };
+
+  const handleDelete = async (level, id) => {
+    let res;
+    if (level === 1) res = await AdminAPI.deleteAdminMainCategory(token, id);
+    else if (level === 2) res = await AdminAPI.deleteAdminCategory(token, id);
+    else if (level === 3) res = await AdminAPI.deleteAdminSubcategory(token, id);
+
+    if (res?.success) {
+      message.success("Deleted successfully");
+      fetchHierarchy();
+    } else {
+      message.error(res?.message || "Delete failed");
+    }
+  };
+
+  const columns = [
+    { title: "Label", dataIndex: "label", key: "label" },
+    { title: "System Name", dataIndex: "name", key: "name" },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <Space>
+          <Button
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => openModal(record._level, "edit", record)}
+          />
+          {record._level < 3 && (
+            <Button
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => openModal(record._level + 1, "create", null, record.id)}
+            >
+              Add {record._level === 1 ? "Secondary" : "Tertiary"}
+            </Button>
+          )}
+          <Popconfirm
+            title="Are you sure?"
+            onConfirm={() => handleDelete(record._level, record.id)}
+          >
+            <Button size="small" danger icon={<DeleteOutlined />} />
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  // Transform hierarchy into a tree structure for Ant Table
+  const dataSource = hierarchy
+    ? [
+        {
+          ...hierarchy,
+          key: `m${hierarchy.id}`,
+          _level: 1,
+          children: hierarchy.mainCategories?.map((cat) => ({
+            ...cat,
+            key: `c${cat.id}`,
+            _level: 2,
+            children: cat.categorySubcategories?.map((sub) => ({
+              ...sub,
+              key: `s${sub.id}`,
+              _level: 3,
+            })),
+          })),
+        },
+      ]
+    : [];
+
+  return (
+    <div
+      style={{
+        padding: "16px",
+        background: "#f9fafb",
+        borderRadius: "8px",
+        border: "1px solid #e5e7eb",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 12,
+        }}
+      >
+        <Typography.Title level={5}>Catalog Hierarchy</Typography.Title>
+        {!hierarchy && (
+          <Button
+            type="primary"
+            size="small"
+            icon={<PlusOutlined />}
+            onClick={() => openModal(1, "create")}
+          >
+            Initialize Hierarchy
+          </Button>
+        )}
+      </div>
+
+      <Table
+        loading={loading}
+        columns={columns}
+        dataSource={dataSource}
+        pagination={false}
+        size="small"
+        locale={{ emptyText: "No hierarchy defined for this category yet." }}
+      />
+
+      <Modal
+        title={`${modalMode === "create" ? "Add" : "Edit"} ${modalLevel === 1 ? "Main" : modalLevel === 2 ? "Secondary" : "Tertiary"} Category`}
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        onOk={handleSave}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="label"
+            label="Display Label"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="name"
+            label="System Name"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item name="description" label="Description">
+            <Input.TextArea />
+          </Form.Item>
+          <Form.Item name="status" label="Status">
+            <Select options={statusOptions} />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+  );
+};
+
+const BusinessTypeManagement = ({ initialIntent = "" }) => {
   const { token } = useContext(MainContext);
   const [domains, setDomains] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,14 +291,13 @@ const BusinessTypeManagement = () => {
   const [selectedDomainId, setSelectedDomainId] = useState(null);
   const [domainForm] = Form.useForm();
   const [categoryForm] = Form.useForm();
+  const hasAppliedInitialIntent = useRef(false);
 
   const fetchDomains = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${ADMIN_BASE_URL}/domains`, {
-        headers: getAuthHeaders(token),
-      });
-      setDomains(response.data?.data?.items || []);
+      const data = await AdminAPI.fetchAdminDomains(token);
+      setDomains(data?.items || []);
     } catch (error) {
       message.error(
         error?.response?.data?.message || "Failed to fetch business domains.",
@@ -61,6 +314,22 @@ const BusinessTypeManagement = () => {
 
     fetchDomains();
   }, [token]);
+
+  useEffect(() => {
+    if (!initialIntent || loading || hasAppliedInitialIntent.current) {
+      return;
+    }
+
+    if (initialIntent === "create-category") {
+      if (domains.length) {
+        openCreateCategoryModal(domains[0]);
+      } else {
+        openCreateDomainModal();
+      }
+    }
+
+    hasAppliedInitialIntent.current = true;
+  }, [domains, initialIntent, loading]);
 
   const filteredDomains = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -148,14 +417,10 @@ const BusinessTypeManagement = () => {
       setSaving(true);
 
       if (selectedDomain) {
-        await axios.put(`${ADMIN_BASE_URL}/domains/${selectedDomain.id}`, values, {
-          headers: getAuthHeaders(token),
-        });
+        await AdminAPI.updateAdminDomain(token, selectedDomain.id, values);
         message.success("Domain updated successfully.");
       } else {
-        await axios.post(`${ADMIN_BASE_URL}/domains`, values, {
-          headers: getAuthHeaders(token),
-        });
+        await AdminAPI.createAdminDomain(token, values);
         message.success("Domain created successfully.");
       }
 
@@ -194,21 +459,13 @@ const BusinessTypeManagement = () => {
       };
 
       if (selectedCategory) {
-        await axios.put(
-          `${ADMIN_BASE_URL}/domains/categories/${selectedCategory.id}`,
-          {
-            ...payload,
-            domain_id: domainId,
-          },
-          {
-            headers: getAuthHeaders(token),
-          },
-        );
+        await AdminAPI.updateAdminDomainCategory(token, selectedCategory.id, {
+          ...payload,
+          domain_id: domainId,
+        });
         message.success("Domain category updated successfully.");
       } else {
-        await axios.post(`${ADMIN_BASE_URL}/domains/${domainId}/categories`, payload, {
-          headers: getAuthHeaders(token),
-        });
+        await AdminAPI.createAdminDomainCategory(token, domainId, payload);
         message.success("Domain category created successfully.");
       }
 
@@ -232,9 +489,7 @@ const BusinessTypeManagement = () => {
 
   const handleDeleteDomain = async (domainId) => {
     try {
-      await axios.delete(`${ADMIN_BASE_URL}/domains/${domainId}`, {
-        headers: getAuthHeaders(token),
-      });
+      await AdminAPI.deleteAdminDomain(token, domainId);
       message.success("Domain deleted successfully.");
       fetchDomains();
     } catch (error) {
@@ -244,9 +499,7 @@ const BusinessTypeManagement = () => {
 
   const handleDeleteCategory = async (categoryId) => {
     try {
-      await axios.delete(`${ADMIN_BASE_URL}/domains/categories/${categoryId}`, {
-        headers: getAuthHeaders(token),
-      });
+      await AdminAPI.deleteAdminDomainCategory(token, categoryId);
       message.success("Domain category deleted successfully.");
       fetchDomains();
     } catch (error) {
@@ -437,8 +690,14 @@ const BusinessTypeManagement = () => {
                   dataSource={domain.subdomains || []}
                   rowKey="id"
                   pagination={false}
+                  expandable={{
+                    expandedRowRender: (subdomain) => (
+                      <CatalogHierarchyManager subdomain={subdomain} />
+                    ),
+                  }}
                   locale={{
-                    emptyText: "No categories have been added to this domain yet.",
+                    emptyText:
+                      "No categories have been added to this domain yet.",
                   }}
                 />
               ),

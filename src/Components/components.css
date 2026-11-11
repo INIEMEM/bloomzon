@@ -28,3 +28,21 @@
 {
   transition: all ease-in-out 250ms;
 }
+
+.menu-bar .ant-menu-item,
+.menu-bar .ant-menu-submenu-title {
+  height: auto !important;
+  min-height: 42px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  line-height: 1.35 !important;
+}
+
+.menu-bar .ant-menu-title-content {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.menu-bar .ant-menu-submenu-arrow {
+  margin-top: 0;
+}

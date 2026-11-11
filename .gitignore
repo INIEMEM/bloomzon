@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Firebase CLI cache
+.firebase/
+
+# Local archives
+davide-admin-source.zip
+
+# Local workstation / VNC scripts
+scripts/setup_3rd_screen.sh
+scripts/windows_control.remmina
